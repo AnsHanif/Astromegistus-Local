@@ -2,17 +2,30 @@ import { Label } from '@/components/ui/label';
 import { CustomSelect } from '@/components/common/custom-select/custom-select';
 import { DATE_OPTIONS, MONTH_OPTIONS, YEAR_OPTIONS } from './signup.constant';
 import React, { memo } from 'react';
+import { useFormContext } from 'react-hook-form';
 
 type DateOfBirthProps = {
+  name: string;
   day: string;
   month: string;
   year: string;
+  className?: string;
   onChange: (field: 'day' | 'month' | 'year', value: string) => void;
 };
 
-function DateOfBirthSelect({ day, month, year, onChange }: DateOfBirthProps) {
+function DateOfBirthSelect({
+  name,
+  day,
+  month,
+  year,
+  onChange,
+  className = '',
+}: DateOfBirthProps) {
+  const {
+    formState: { errors },
+  } = useFormContext();
   return (
-    <div className="flex flex-col items-start space-y-3">
+    <div className="flex flex-col items-start space-y-4">
       <Label className="text-size-tertiary sm:text-size-medium font-semibold">
         Date of Birth
       </Label>
@@ -23,7 +36,7 @@ function DateOfBirthSelect({ day, month, year, onChange }: DateOfBirthProps) {
           placeholder="Day"
           selectedValue={day}
           className="w-full h-12 sm:h-15"
-          triggerClassName="h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey"
+          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
         <CustomSelect
@@ -32,7 +45,7 @@ function DateOfBirthSelect({ day, month, year, onChange }: DateOfBirthProps) {
           placeholder="Month"
           selectedValue={month}
           className="w-full h-12 sm:h-15"
-          triggerClassName="h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey"
+          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
         <CustomSelect
@@ -41,10 +54,16 @@ function DateOfBirthSelect({ day, month, year, onChange }: DateOfBirthProps) {
           placeholder="Year"
           selectedValue={year}
           className="w-full h-12 sm:h-15"
-          triggerClassName="h-12 sm:h-15 w-full cursor-pointer bg-transparent  border-grey"
+          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
       </div>
+
+      {errors?.[name] && (
+        <p className="text-red-500 text-sm">
+          {errors?.[name]?.message as string}
+        </p>
+      )}
     </div>
   );
 }

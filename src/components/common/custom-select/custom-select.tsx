@@ -84,7 +84,7 @@ export function CustomSelect({
   triggerClassName,
   contentClassName,
   itemClassName,
-  triggerTextClassName,
+  triggerTextClassName = '',
   showChevron = true,
   chevronClassName,
   variant = 'default',
@@ -186,7 +186,7 @@ export function CustomSelect({
                     }}
                     className={cn(
                       variantStyles.item,
-                      isSelected && 'bg-blue-50 text-primary font-medium',
+                      isSelected && 'bg-blue-50 text-black font-medium',
                       itemClassName
                     )}
                   >

@@ -20,7 +20,7 @@ export default function AuthSelectionPage() {
       <div className="flex flex-col items-center md:flex-row gap-6 md:gap-8 w-full justify-center">
         {/* Continue as Guest */}
         <Link
-          href="/guest"
+          href="/"
           className="!flex flex-col items-center justify-center bg-white/5 border border-white hover:border-white/50 transition-all max-w-[395px] w-full px-4 py-10 md:py-20 cursor-pointer"
         >
           <UserRound className="w-12 h-12" color="#fff" />

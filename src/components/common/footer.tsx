@@ -1,3 +1,4 @@
+'use client';
 import React from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -11,10 +12,12 @@ import {
   faYoutube,
   faLinkedinIn,
 } from '@fortawesome/free-brands-svg-icons';
+import { useRouter } from 'next/navigation';
 
 import { logo } from '../assets';
 
 export default function Footer() {
+  const router = useRouter();
   const icons = [
     { href: '#', icon: faFacebookF, label: 'Facebook' },
     { href: '#', icon: faXTwitter, label: 'X' },
@@ -41,7 +44,8 @@ export default function Footer() {
               alt="Astromegistus Logo"
               width={96}
               height={96}
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain cursor-pointer"
+              onClick={() => router.push('/')}
             />
           </div>
         </div>

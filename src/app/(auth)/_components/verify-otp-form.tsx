@@ -1,27 +1,68 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import AuthForm from './auth-form';
+import { useSnackbar } from 'notistack';
+import {
+  useResendCode,
+  useVerifyEmail,
+} from '@/hooks/mutation/auth-muatation/auth';
+import Cookies from 'js-cookie';
+import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 
-type Props = { onBack: () => void; onSuccess: () => void };
+type Props = { onBack: () => void; onSuccess: (data: any) => void };
 
 type VerifyOtpFormType = { otp: string[] };
 
 export default function VerifyOtpform({ onBack, onSuccess }: Props) {
+  const token = Cookies.get('temp-tk-astro') ?? '';
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
   const methods = useForm<VerifyOtpFormType>({
     mode: 'onBlur',
     reValidateMode: 'onBlur',
-    defaultValues: { otp: ['', '', '', ''] },
+    defaultValues: { otp: ['', '', '', '', '', ''] },
   });
+
+  const { mutate, isPending } = useVerifyEmail();
+  const { mutate: resendCodeMutate, isPending: isResending } = useResendCode();
 
   const inputsRef = useRef<HTMLInputElement[]>([]);
 
   const onSubmit = (data: VerifyOtpFormType) => {
+    if (data.otp.some((digit) => !digit)) {
+      closeSnackbar();
+      enqueueSnackbar('Please enter all 6 digits of the OTP', {
+        variant: 'error',
+      });
+      return;
+    }
+
     const otpCode = data.otp.join('');
-    console.log('OTP Entered:', otpCode);
-    onSuccess();
+
+    const formData = { code: Number(otpCode), token };
+
+    mutate(formData, {
+      onSuccess: (response: any) => {
+        Cookies.remove('temp-tk-astro');
+        onSuccess(response?.data);
+        closeSnackbar();
+        enqueueSnackbar(response?.message, { variant: 'success' });
+      },
+      onError: (error: any) => {
+        console.log(error);
+        let message = 'Something went wrong. Please try again.';
+        if (error?.response?.data?.message) {
+          message = error.response.data.message;
+        } else if (error?.message) {
+          message = error.message;
+        }
+        closeSnackbar();
+        enqueueSnackbar(message, { variant: 'error' });
+      },
+    });
   };
 
   const handleChange = (value: string, index: number) => {
@@ -68,10 +109,38 @@ export default function VerifyOtpform({ onBack, onSuccess }: Props) {
     inputsRef.current[nextEmptyIndex]?.focus();
   };
 
+  const handleResend = () => {
+    if (isResending) return;
+    resendCodeMutate(
+      { token },
+      {
+        onSuccess: (response: any) => {
+          closeSnackbar();
+          enqueueSnackbar(response?.message, { variant: 'success' });
+        },
+        onError: (error: any) => {
+          console.log(error);
+          let message = 'Something went wrong. Please try again.';
+          if (error?.response?.data?.message) {
+            message = error.response.data.message;
+          } else if (error?.message) {
+            message = error.message;
+          }
+          closeSnackbar();
+          enqueueSnackbar(message, { variant: 'error' });
+        },
+      }
+    );
+  };
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   return (
     <AuthForm
       heading="Verify OTP"
-      subheading="Enter 4-digit code send to your email"
+      subheading="Enter 6-digit code send to your email"
       buttonText=""
       showBackButton={true}
       onBackClick={onBack}
@@ -89,8 +158,8 @@ export default function VerifyOtpform({ onBack, onSuccess }: Props) {
               OTP Code
             </Label>
 
-            <div className="flex justify-between gap-4 sm:gap-12 mt-2">
-              {[0, 1, 2, 3].map((i) => {
+            <div className="flex justify-between gap-4 mt-2">
+              {[0, 1, 2, 3, 4, 5].map((i) => {
                 const { ref, ...rest } = methods.register(`otp.${i}`);
                 return (
                   <Input
@@ -117,14 +186,18 @@ export default function VerifyOtpform({ onBack, onSuccess }: Props) {
               variant="default"
               className="w-full text-black"
               type="submit"
+              disabled={isPending}
             >
-              Verify Code
+              {isPending ? <SpinnerLoader /> : 'Verify Code'}
             </Button>
 
             <div className="text-center mt-3">
               Don’t Receive It?{' '}
-              <span className="text-golden-yellow hover:cursor-pointer">
-                Resend Code
+              <span
+                className="text-golden-yellow hover:cursor-pointer"
+                onClick={handleResend}
+              >
+                {isResending ? 'Resending...' : 'Resend Code'}
               </span>
             </div>
           </div>

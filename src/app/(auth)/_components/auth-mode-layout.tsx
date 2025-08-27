@@ -5,6 +5,7 @@ import PrimaryImage from '@/components/common/primary-image/primary-image';
 import Header from './header';
 import AuthTabs from './auth-tabs';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { logo } from '@/components/assets';
 
 interface AuthModeLayoutProps {
@@ -12,6 +13,7 @@ interface AuthModeLayoutProps {
 }
 
 const AuthModeLayout: FC<AuthModeLayoutProps> = ({ children }) => {
+  const router = useRouter();
   return (
     <div className="text-white min-h-screen h-full bg-gradient-to-b from-black to-emerald-green relative">
       <Header />
@@ -22,7 +24,8 @@ const AuthModeLayout: FC<AuthModeLayoutProps> = ({ children }) => {
           alt="Astromegistus Logo"
           width={128}
           height={128}
-          className="w-full h-full object-contain"
+          className="w-full h-full object-contain cursor-pointer"
+          onClick={() => router.push('/')}
         />
       </div>
 

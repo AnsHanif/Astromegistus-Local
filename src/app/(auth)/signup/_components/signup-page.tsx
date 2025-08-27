@@ -11,15 +11,33 @@ import { Button } from '@/components/ui/button';
 import Link from '@/components/common/custom-link/custom-link';
 import DateOfBirthSelect from './date-of-birth-select';
 import TimeOfBirth from './time-of-birth';
+import { useSignUpUser } from '@/hooks/mutation/auth-muatation/auth';
+import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import { useSnackbar } from 'notistack';
+import Cookies from 'js-cookie';
 
 type SignupForm = {
   fullName: string;
   email: string;
   password: string;
   confirmPassword: string;
+  day?: string;
+  month?: string;
+  year?: string;
+  hour?: string;
+  minute?: string;
+  timePeriod?: string;
+  gender?: string;
+  birthCountry?: string;
+  dateOfBirth?: string;
+  timeOfBirth?: string;
 };
 
-const SignupPage = () => {
+type SignupPageProps = { onSuccess: () => void };
+
+const SignupPage = ({ onSuccess }: SignupPageProps) => {
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
   const [formData, setFormData] = useState({
     day: '',
     month: '',
@@ -36,21 +54,105 @@ const SignupPage = () => {
     reValidateMode: 'onBlur',
   });
 
+  const { mutate, isPending } = useSignUpUser();
+
   const handleFieldChange = useCallback(
     (
       field: 'day' | 'month' | 'year' | 'hour' | 'minute' | 'timePeriod',
       value: string
     ) => {
-      setFormData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      setFormData((prev) => ({ ...prev, [field]: value }));
+
+      if (field === 'day' || field === 'month' || field === 'year') {
+        methods.clearErrors('dateOfBirth');
+      }
+
+      if (field === 'hour' || field === 'minute' || field === 'timePeriod') {
+        methods.clearErrors('timeOfBirth');
+      }
     },
-    []
+    [methods]
+  );
+
+  const handleSelect = useCallback(
+    (field: 'gender' | 'birthCountry', value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      methods.clearErrors(field);
+    },
+    [methods]
   );
 
   const onSubmit = (data: SignupForm) => {
-    console.log('onSubmit data ', data);
+    let hasError = false;
+
+    if (!formData.day || !formData.month || !formData.year) {
+      methods.setError('dateOfBirth', {
+        type: 'required',
+        message: 'Please select day, month and year of birth.',
+      });
+      hasError = true;
+    }
+
+    if (!formData.hour || !formData.minute || !formData.timePeriod) {
+      methods.setError('timeOfBirth', {
+        type: 'required',
+        message: 'Please select hour, minute and AM/PM for time of birth.',
+      });
+      hasError = true;
+    }
+
+    if (!formData.birthCountry) {
+      methods.setError('birthCountry', {
+        type: 'required',
+        message: 'Place of birth is required.',
+      });
+      hasError = true;
+    }
+
+    if (!formData.gender) {
+      methods.setError('gender', {
+        type: 'required',
+        message: 'Gender is required.',
+      });
+      hasError = true;
+    }
+
+    if (hasError) return;
+
+    const { fullName, email, password } = data;
+    const { birthCountry, day, gender, hour, minute, month, timePeriod, year } =
+      formData;
+
+    const signupData = {
+      fullName,
+      email,
+      password,
+      gender,
+      birthCountry,
+      dateOfBirth: { day, month, year },
+      timeOfBirth: { hour, minute, timePeriod },
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+    };
+
+    mutate(signupData, {
+      onSuccess: (response: any) => {
+        Cookies.set('temp-tk-astro', response?.data?.token);
+        onSuccess();
+        closeSnackbar();
+        enqueueSnackbar(response?.message, { variant: 'success' });
+      },
+      onError: (error: any) => {
+        console.log(error);
+        let message = 'Something went wrong. Please try again.';
+        if (error?.response?.data?.message) {
+          message = error.response.data.message;
+        } else if (error?.message) {
+          message = error.message;
+        }
+        closeSnackbar();
+        enqueueSnackbar(message, { variant: 'error' });
+      },
+    });
   };
 
   return (
@@ -58,7 +160,6 @@ const SignupPage = () => {
       heading="Join Astromegistus"
       subheading="Begin your cosmic journey with us"
       buttonText="Create Account"
-      onButtonClick={() => console.log('Signup Button is Clicked')}
     >
       <FormProvider {...methods}>
         <form
@@ -71,12 +172,22 @@ const SignupPage = () => {
               name="fullName"
               type="text"
               placeholder="Enter full name"
-              // rules={{ required: 'Full name is required' }}
+              rules={{
+                required: 'Full name is required',
+                validate: (value) =>
+                  value.trim().length >= 3 ||
+                  'Full name must be at least 3 characters long.',
+                maxLength: {
+                  value: 100,
+                  message: 'Full name must be at most 100 characters long.',
+                },
+              }}
             />
 
             {/* Date Of Birth */}
 
             <DateOfBirthSelect
+              name="dateOfBirth"
               day={formData.day}
               month={formData.month}
               year={formData.year}
@@ -94,10 +205,9 @@ const SignupPage = () => {
               </Label>
               <CustomSelect
                 onSelect={(value: string) =>
-                  setFormData({ ...formData, birthCountry: value })
+                  handleSelect('birthCountry', value)
                 }
                 options={PLACE_OF_BIRTH_OPTIONS}
-                // classNames={{}}
                 size="sm"
                 variant="default"
                 placeholder="Select country"
@@ -106,6 +216,11 @@ const SignupPage = () => {
                 triggerClassName="h-12 sm:h-15 w-full cursor-pointer bg-transparent  border-grey"
                 contentClassName="w-full max-h-60 overflow-y-auto"
               />
+              {methods.formState.errors.birthCountry && (
+                <p className="text-red-500 text-sm">
+                  {methods.formState.errors.birthCountry.message}
+                </p>
+              )}
             </div>
 
             <FormInput
@@ -113,13 +228,22 @@ const SignupPage = () => {
               name="password"
               type="password"
               placeholder="Password"
-              // rules={{
-              //   required: 'Password is required',
-              //   minLength: {
-              //     value: 6,
-              //     message: 'Password must be at least 6 characters',
-              //   },
-              // }}
+              rules={{
+                required: 'Password is required',
+                minLength: {
+                  value: 8,
+                  message: 'Password must be at least 8 characters long.',
+                },
+                maxLength: {
+                  value: 100,
+                  message: 'Password must be at most 100 characters long.',
+                },
+                pattern: {
+                  value: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).+$/,
+                  message:
+                    'Password must include at least one uppercase letter, one lowercase letter, one digit, and one special character.',
+                },
+              }}
             />
           </div>
 
@@ -130,18 +254,23 @@ const SignupPage = () => {
               type="email"
               placeholder="Enter your email"
               className="w-full"
-              // rules={{
-              //   required: 'Email is required',
-              //   pattern: {
-              //     value: /^\S+@\S+$/i,
-              //     message: 'Invalid email address',
-              //   },
-              // }}
+              rules={{
+                required: 'Email is required',
+                pattern: {
+                  value: /^\S+@\S+$/i,
+                  message: 'Invalid email address',
+                },
+                maxLength: {
+                  value: 254,
+                  message: 'Email must be at most 254 characters long.',
+                },
+              }}
             />
 
             {/* Time of Birth */}
 
             <TimeOfBirth
+              name="timeOfBirth"
               hour={formData.hour}
               minute={formData.minute}
               timePeriod={formData.timePeriod}
@@ -158,11 +287,8 @@ const SignupPage = () => {
               </Label>
 
               <CustomSelect
-                onSelect={(value: string) =>
-                  setFormData({ ...formData, gender: value })
-                }
+                onSelect={(value: string) => handleSelect('gender', value)}
                 options={GENDER_TYPE}
-                // classNames={{}}
                 size="sm"
                 variant="default"
                 placeholder="Select gender"
@@ -171,6 +297,12 @@ const SignupPage = () => {
                 triggerClassName="h-12 sm:h-15 w-full cursor-pointer bg-transparent  border-grey"
                 contentClassName="w-full max-h-60 overflow-y-auto"
               />
+
+              {methods.formState.errors.gender && (
+                <p className="text-red-500 text-sm">
+                  {methods.formState.errors.gender.message}
+                </p>
+              )}
             </div>
 
             <FormInput
@@ -178,19 +310,24 @@ const SignupPage = () => {
               name="confirmPassword"
               type="password"
               placeholder="Confirm Password"
-              // rules={{
-              //   required: 'Password is required',
-              //   minLength: {
-              //     value: 6,
-              //     message: 'Password must be at least 6 characters',
-              //   },
-              // }}
+              rules={{
+                required: 'Confirm password is required',
+                validate: (value, formValues) => {
+                  return (
+                    value === formValues.password || 'Passwords do not match'
+                  );
+                },
+              }}
             />
           </div>
         </form>
 
-        <Button className="md:w-[470px] w-full text-black">
-          Create Account
+        <Button
+          className="md:w-[470px] w-full text-black"
+          onClick={methods.handleSubmit(onSubmit)}
+          disabled={isPending}
+        >
+          {isPending ? <SpinnerLoader /> : 'Create Account'}
         </Button>
 
         <div className="text-center md:w-[470px]">

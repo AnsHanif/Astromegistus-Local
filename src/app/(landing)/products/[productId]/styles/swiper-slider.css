@@ -1,0 +1,14 @@
+.swiper-slide {
+  transform: scale(0.8);
+  opacity: 0.5;
+  transition: all 0.5s ease-in-out;
+}
+
+.swiper-slide-active {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.swiper-pagination {
+  bottom: 0px !important;
+}

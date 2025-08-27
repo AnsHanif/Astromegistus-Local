@@ -6,22 +6,30 @@ import {
   TIME_OF_BIRTH_MINUTES,
   TIME_OF_BIRTH_PERIOD,
 } from './signup.constant';
+import { useFormContext } from 'react-hook-form';
 
 type TimeOfBirthProps = {
+  name: string;
   hour: string;
   minute: string;
   timePeriod: string;
+  className?: string;
   onChange: (field: 'hour' | 'minute' | 'timePeriod', value: string) => void;
 };
 
 const TimeOfBirth: FC<TimeOfBirthProps> = ({
+  name,
   hour,
   minute,
   timePeriod,
   onChange,
+  className = '',
 }) => {
+  const {
+    formState: { errors },
+  } = useFormContext();
   return (
-    <div className="flex flex-col items-start space-y-3">
+    <div className="flex flex-col items-start space-y-4">
       {/* 1st */}
       <Label
         htmlFor="birth"
@@ -41,7 +49,7 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
           selectedIcon={false}
           selectedValue={hour}
           className="w-full h-12 sm:h-15"
-          triggerClassName="h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey"
+          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
 
@@ -56,7 +64,7 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
           showChevron={false}
           selectedValue={minute}
           className="w-full h-12 sm:h-15"
-          triggerClassName="h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey"
+          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full  max-h-60 overflow-y-auto"
         />
 
@@ -71,10 +79,16 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
           showChevron={false}
           selectedValue={timePeriod}
           className="w-full h-12 sm:h-15"
-          triggerClassName="h-12 sm:h-15 w-full cursor-pointer bg-transparent  border-grey"
+          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
       </div>
+
+      {errors?.[name] && (
+        <p className="text-red-500 text-sm">
+          {errors?.[name]?.message as string}
+        </p>
+      )}
     </div>
   );
 };

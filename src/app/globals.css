@@ -1,6 +1,14 @@
 @import 'tailwindcss';
 
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Lato';
+  src: url('/fonts/lato.semibold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
 :root {
   --pure-white: #ffffff;
   --pure-black: #000000;
@@ -18,6 +26,7 @@
   --color-golden-glow: #dab612;
   --color-pink-shade: #eed66c;
   --color-golden-glow-dark: #ab6a1c;
+  --color-grey-light-50: #f7f7f7;
 
   --default-font-family: var(--font-default);
 
@@ -26,6 +35,7 @@
   --radius-lg: 15px;
   --radius-xl: 20px;
 
+  --text-size-heading-2xl: 72px;
   --text-size-heading: 24px;
   --text-size-large: 20px;
   --text-size-medium: 18px;
@@ -65,3 +75,7 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.3); /* Glass border */
   box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); /* Depth */
 }
+
+/* .font-semibold {
+  font-weight: 500;
+} */
