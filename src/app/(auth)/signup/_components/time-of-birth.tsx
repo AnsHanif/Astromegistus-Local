@@ -14,6 +14,7 @@ type TimeOfBirthProps = {
   minute: string;
   timePeriod: string;
   className?: string;
+  selectClassNames?: string;
   onChange: (field: 'hour' | 'minute' | 'timePeriod', value: string) => void;
 };
 
@@ -24,6 +25,7 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
   timePeriod,
   onChange,
   className = '',
+  selectClassNames = '',
 }) => {
   const {
     formState: { errors },
@@ -37,7 +39,9 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
       >
         Time of Birth
       </Label>
-      <div className="flex gap-2 w-full items-center justify-between">
+      <div
+        className={`flex gap-2 w-full items-center justify-between ${selectClassNames}`}
+      >
         <CustomSelect
           onSelect={(value) => onChange('hour', value)}
           options={TIME_OF_BIRTH_HOURS}

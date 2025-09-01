@@ -10,6 +10,7 @@ type DateOfBirthProps = {
   month: string;
   year: string;
   className?: string;
+  selectClassNames?: string;
   onChange: (field: 'day' | 'month' | 'year', value: string) => void;
 };
 
@@ -20,6 +21,7 @@ function DateOfBirthSelect({
   year,
   onChange,
   className = '',
+  selectClassNames = '',
 }: DateOfBirthProps) {
   const {
     formState: { errors },
@@ -29,7 +31,9 @@ function DateOfBirthSelect({
       <Label className="text-size-tertiary sm:text-size-medium font-semibold">
         Date of Birth
       </Label>
-      <div className="flex gap-2 w-full items-center justify-between">
+      <div
+        className={`flex gap-2 w-full items-center justify-between ${selectClassNames}`}
+      >
         <CustomSelect
           onSelect={(value) => onChange('day', value)}
           options={DATE_OPTIONS}

@@ -1,25 +1,11 @@
 'use client';
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { PricingImg, Box, Crown, Star } from '@/components/assets';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck } from '@fortawesome/free-solid-svg-icons';
+import { Box, Crown } from '@/components/assets';
+import PricingPlanCard from '../../_components/pricing-plan-card';
+import ConfirmationModal from '../../_components/confirmation-modal';
 
-type Plan = {
-  id: string;
-  title: string;
-  priceLabel: string;
-  priceSuffix?: string;
-  image: any;
-  badge?: string;
-  features: string[];
-  buttonText: string;
-  buttonStyle?: string;
-  borderColor: string;
-};
-
-const plans: Plan[] = [
+const plans = [
   {
     id: 'classic',
     title: 'Classic',
@@ -34,7 +20,7 @@ const plans: Plan[] = [
       'Access to astrology news & insights',
       'Basic customer support',
     ],
-    buttonText: 'Buy Now',
+    buttonText: 'Current Plan',
     buttonStyle: 'bg-emerald-green text-white',
     borderColor: '#000000',
   },
@@ -53,13 +39,14 @@ const plans: Plan[] = [
       'All Classic benefits',
       'Premium customer support',
     ],
-    buttonText: 'Buy Now',
+    buttonText: 'Upgrade Now',
     borderColor: '#0D853D',
   },
 ];
 
 export default function ManageSubscriptionPage() {
   const [showPlan, setShowPlan] = useState(false);
+  const [isModal, setIsModal] = useState(false);
   return (
     <>
       {!showPlan ? (
@@ -81,7 +68,7 @@ export default function ManageSubscriptionPage() {
           </div>
 
           <div
-            className="flex items-center justify-between px-4 py-3 md:px-8 md:py-5 cursor-pointer border border-white transition-all duration-200 hover:bg-white/10 hover:shadow-md"
+            className="flex items-center justify-between px-4 py-3 md:px-8 md:py-5 cursor-pointer border transition-all duration-200 hover:bg-white/10 hover:shadow-md"
             onClick={() => setShowPlan(true)}
           >
             <h1 className="text-size-large md:text-size-heading font-semibold">
@@ -90,79 +77,31 @@ export default function ManageSubscriptionPage() {
             <ArrowRight className="h-5 w-5 md:h-6 md:w-6 transition-transform duration-200 group-hover:translate-x-1" />
           </div>
 
-          <div className="flex items-center justify-between px-4 py-3 md:px-8 md:py-5 cursor-pointer border border-white transition-all duration-200 hover:bg-white/10 hover:shadow-md">
+          <div
+            className="flex items-center justify-between px-4 py-3 md:px-8 md:py-5 cursor-pointer border transition-all duration-200 hover:bg-white/10 hover:shadow-md"
+            onClick={() => setIsModal(true)}
+          >
             <h1 className="text-size-large md:text-size-heading font-semibold">
               Cancel Subscription
             </h1>
             <ArrowRight className="h-5 w-5 md:h-6 md:w-6 transition-transform duration-200 group-hover:translate-x-1" />
           </div>
+
+          <ConfirmationModal
+            open={isModal}
+            setOpen={setIsModal}
+            title="Cancel Subscription"
+            subTitle="Classic Plan – $19/month"
+            description="You’ll lose access to classic features immediately after cancellation."
+            btn1Title="Yes, Cancel"
+            btn2Title="Keep Subscription"
+            iconType="cancelSub"
+          />
         </div>
       ) : (
-        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 relative z-10 text-black my-10">
+        <div className="flex flex-col md:flex-row justify-center gap-8 z-10 my-10 text-black">
           {plans.map((plan) => (
-            <div
-              key={plan.id}
-              className="relative bg-white shadow-md flex flex-col border-t-10 border-b-10"
-              style={{ borderColor: plan.borderColor }}
-            >
-              <div className="absolute top-3 right-0 z-20">
-                <div
-                  className="relative bg-golden-glow-dark text-white text-xs font-normal px-3 py-2 shadow-lg 
-    before:content-[''] before:absolute before:top-1/2 before:-left-3 before:-translate-y-1/2 
-    before:border-y-[16px] before:border-y-transparent before:border-r-[12px] before:border-r-golden-glow-dark"
-                >
-                  {plan.badge}
-                </div>
-              </div>
-
-              <div className="px-8 pt-10 flex-0">
-                <div className="flex justify-center">
-                  <img
-                    src={plan.image.src}
-                    alt="Loading Image"
-                    className="w-32 h-32 object-contain"
-                  />
-                </div>
-
-                <h1 className="text-size-heading md:text-size-primary font-bold text-center mt-6">
-                  {plan.title}
-                </h1>
-
-                <div className="text-center mt-4">
-                  <span className="text-size-heading md:text-size-primary font-bold">
-                    {plan.priceLabel}
-                  </span>
-                  {plan.priceSuffix && (
-                    <span className="text-base font-normal">
-                      {plan.priceSuffix}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="px-8 mt-6 flex-1">
-                <ul className="space-y-4 text-left text-base">
-                  {plan.features.map((f, idx) => (
-                    <li key={idx} className="flex items-start gap-3">
-                      <FontAwesomeIcon
-                        icon={faCheck}
-                        className="w-5 h-5 mt-0.5 flex-shrink-0"
-                      />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              <div className="px-8 pb-4 pt-8">
-                <Button
-                  variant="default"
-                  className={`w-full ${plan.buttonStyle}`}
-                >
-                  {plan.buttonText}
-                </Button>
-              </div>
-            </div>
+            <PricingPlanCard key={plan.id} plan={plan} />
           ))}
         </div>
       )}

@@ -1,0 +1,41 @@
+import SuccessAnimation from '@/components/common/success-animation';
+import React from 'react';
+
+const Step5BookingConfirmed = () => {
+  return (
+    <div className="flex flex-col gap-6 mb-36 items-center justify-center max-w-[40rem] w-full mx-auto text-center">
+      {/* Success Animation */}
+      <SuccessAnimation />
+
+      {/* Heading */}
+      <h2 className="text-size-heading md:text-size-primary font-bold">
+        Booking Confirmed!
+      </h2>
+
+      {/* Subtext */}
+      <p className="text-gray-700">
+        Your live session has been successfully booked.
+      </p>
+
+      {/* Booking Details */}
+      <div className="mt-6 w-full text-left max-w-[25rem] mx-auto space-y-3">
+        <div className="flex flex-col xs:flex-row justify-between xs:gap-2">
+          <span className="font-semibold w-32">Reading Title:</span>
+          <span className="text-gray-900">Soul-To-Current Moment</span>
+        </div>
+
+        <div className="flex flex-col xs:flex-row justify-between xs:gap-2">
+          <span className="font-semibold w-32">Date &amp; Time:</span>
+          <span className="text-gray-900">Aug 15, 2025, 2:00 PM (EST)</span>
+        </div>
+
+        <div className="flex flex-col xs:flex-row justify-between xs:gap-2">
+          <span className="font-semibold w-32">Astrologer/Coach:</span>
+          <span className="text-gray-900">Dr. Elara Vance</span>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Step5BookingConfirmed;

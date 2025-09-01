@@ -86,7 +86,7 @@ const FormInput: React.FC<FormInputProps> = ({
           onChange={handleChange}
           readOnly={readOnly}
           disabled={disabled}
-          className={`!w-full border border-grey h-13 md:h-15 mt-2 font-sf-pro pr-10 placeholder:text-grey ${className} ${
+          className={`!w-full border border-grey h-13 md:h-15 mt-2 pr-10 placeholder:text-grey ${className} ${
             readOnly || disabled ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         />
@@ -103,7 +103,7 @@ const FormInput: React.FC<FormInputProps> = ({
           <button
             type="button"
             onClick={togglePasswordVisibility}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-stroke-grey hover:text-gray-300 outline-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 outline-none"
           >
             {showPassword ? (
               <EyePasswordIcon className="h-5 w-5 cursor-pointer" />

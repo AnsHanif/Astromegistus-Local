@@ -3,13 +3,16 @@
 import React from 'react';
 import ProductInfoHeader from '../../_components/product-info-header';
 import ReadingSessionCard from './reading-card-session';
+import { Button } from '@/components/ui/button';
+import SuccessAnimation from '@/components/common/success-animation';
 
 const BookingConfirmedPage = () => {
   return (
     <ProductInfoHeader title="Booked Readings">
-      <div className="flex flex-col items-center justify-center text-center py-12">
+      <div className="flex flex-col items-center justify-center text-center mb-12">
         {/* Heading */}
-        <h2 className="text-size-heading md:text-size-primary font-bold mt-6">
+        <SuccessAnimation />
+        <h2 className="text-size-heading md:text-size-primary font-bold mt-4">
           Your Readings Are Booked!
         </h2>
         <p className="mt-2 text-sm">
@@ -18,26 +21,45 @@ const BookingConfirmedPage = () => {
       </div>
 
       {/* Reading Session Card */}
-      <div className="py-8">
-        <h2 className="font-semibold mb-4">Instant Readings Available Now</h2>
+      <div>
+        <h2 className="text-size-large md:text-size-heading font-medium mb-2">
+          Instant Readings Available Now <span className="text-sm">(1)</span>
+        </h2>
         <ReadingSessionCard
           title="AstroBlueprint"
           type="reading"
           label="Natal Reading"
           duration="60 - 90 min"
           actionText="Get Reading"
+          classNames="mb-6"
           onAction={() => alert('Get Reading clicked')}
         />
 
-        <h2 className="font-semibold mt-8 mb-4">Scheduled Live Sessions (1)</h2>
+        <h2 className="text-size-large md:text-size-heading font-medium mb-2">
+          Scheduled Live Sessions<span className="text-sm">(1)</span>
+        </h2>
         <ReadingSessionCard
           title="Your Next 12 Months"
           type="session"
           label="Predictive"
           duration="90 - 120 min"
           actionText="View Session"
+          classNames="mb-8"
           onAction={() => alert('View Session clicked')}
         />
+
+        <div className="space-y-4">
+          <Button
+            className="w-full bg-emerald-green border-emerald-green text-white"
+            variant={'outline'}
+          >
+            Book More Readings
+          </Button>
+
+          <Button className="w-full" variant={'outline'}>
+            Go to Dashboard
+          </Button>
+        </div>
       </div>
     </ProductInfoHeader>
   );

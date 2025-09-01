@@ -6,7 +6,20 @@ import Star from './images/star.png';
 import HeroBG from './images/hero-bg.png';
 import YellowStars from './images/yellow-stars.png';
 import NewsLetterBG from './images/newletter-bg.png';
+import AboutHeroBG from './images/hero-about-us.png';
 import AstrologyCoachingImage from './images/astrology-coaching.png';
+import AboutMissionBG from './images/about-mission-bg.png';
+import AboutMissionImg from './images/about-mission-img.png';
+import AboutHowWorkImg from './images/how-work-img.png';
+import Number1 from './images/1.png';
+import Number2 from './images/2.png';
+import Number3 from './images/3.png';
+import Number4 from './images/4.png';
+import Member1 from './images/member-1.png';
+import Member2 from './images/member-2.png';
+import Member3 from './images/member-3.png';
+import StartJourneyBG from './images/start-journey-bg.png';
+import CareerHeroBG from './images/hero-career.png';
 
 export {
   logo,
@@ -15,7 +28,20 @@ export {
   Crown,
   Star,
   HeroBG,
+  Number1,
+  Number2,
+  Number3,
+  Number4,
+  Member1,
+  Member2,
+  Member3,
   YellowStars,
+  AboutHeroBG,
   NewsLetterBG,
+  CareerHeroBG,
+  AboutMissionBG,
+  StartJourneyBG,
+  AboutMissionImg,
+  AboutHowWorkImg,
   AstrologyCoachingImage,
 };

@@ -24,7 +24,7 @@ export default function BookedProducts({
 }: BookedProductsProps): JSX.Element {
   return (
     <div
-      className={`w-full h-full max-w-[500px] bg-[#3F3F3F] p-3 pb-4 overflow-hidden flex flex-col ${classNames}`}
+      className={`w-full h-full max-w-[500px] bg-[var(--bg)] text-white p-3 pb-4 overflow-hidden flex flex-col ${classNames}`}
     >
       <div className="relative h-48 w-full">
         <Image src={image} alt={title} fill className="object-cover" />

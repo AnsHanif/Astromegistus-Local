@@ -40,7 +40,7 @@ export default function DashboardTabs() {
               ${
                 isActive
                   ? 'bg-gradient-to-r from-[#DAB612] via-[#EED66C] to-[#AB6A1C] text-black'
-                  : 'bg-[#3F3F3F] text-white hover:bg-[#555]'
+                  : 'bg-[var(--bg)] text-white hover:bg-[var(--bg-hover)]'
               }`}
           >
             <Icon className="h-5 w-5 md:h-6 md:w-6" />

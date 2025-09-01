@@ -40,7 +40,7 @@ interface CustomSelectProps {
 const variants = {
   default: {
     trigger:
-      'inline-flex items-center gap-2 px-4 py-2 border border-gray bg-white text-sm font-medium text-white hover:border-white transition-colors focus:border-white',
+      'inline-flex items-center gap-2 px-4 py-2 border border-gray bg-white text-sm font-medium hover:border-white transition-colors focus:border-white',
     content: 'bg-white border border-gray-200 shadow-lg rounded-md',
     item: 'cursor-pointer px-3 py-2 text-sm text-gray-900',
   },
@@ -150,7 +150,7 @@ export function CustomSelect({
             {showChevron && (
               <ChevronDown
                 className={cn(
-                  'text-white shrink-0 transition-transform',
+                  'shrink-0 transition-transform',
                   sizeStyles.chevron,
                   // open && 'rotate-180',
                   chevronClassName

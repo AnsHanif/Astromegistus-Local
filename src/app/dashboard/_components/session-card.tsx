@@ -8,7 +8,7 @@ interface SessionCardProps {
 
 export default function SessionCard({ type }: SessionCardProps): JSX.Element {
   return (
-    <div className="my-4 py-6 px-4 sm:px-8 bg-[#3F3F3F] text-white shadow-lg flex flex-col gap-4">
+    <div className="my-4 py-6 px-4 sm:px-8 bg-[var(--bg)] text-white shadow-lg flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
           <h2 className="md:text-size-large font-semibold">
