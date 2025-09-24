@@ -54,37 +54,37 @@ export async function middleware(request: NextRequest) {
   }
 
   // If token exists, verify and check role (for regular users, NOT admin)
-  if (tkGr && !isPublicRoute && !pathname.startsWith('/admin')) {
-    try {
-      const secret = new TextEncoder().encode(
-        "Astromegistus@2025!aRt91Qv7Zx!mLdE#4pHs"
-      );
-      const { payload } = await jwtVerify(tkGr.value, secret);
-      const userRole = payload.role as string;
+  // if (tkGr && !isPublicRoute && !pathname.startsWith('/admin')) {
+  //   try {
+  //     const secret = new TextEncoder().encode(
+  //       "Astromegistus@2025!aRt91Qv7Zx!mLdE#4pHs"
+  //     );
+  //     const { payload } = await jwtVerify(tkGr.value, secret);
+  //     const userRole = payload.role as string;
 
-      // Role-based access control for regular users
-      if (pathname.startsWith('/dashboard/astrologers')) {
-        if (userRole !== 'ASTROLOGER') {
-          return NextResponse.redirect(new URL('/dashboard', request.url));
-        }
-      } else if (pathname.startsWith('/dashboard')) {
-        if (userRole === 'ADMIN') {
-          return NextResponse.redirect(new URL('/admin', request.url));
-        } else if (userRole === 'ASTROLOGER') {
-          return NextResponse.redirect(
-            new URL('/dashboard/astrologers', request.url)
-          );
-        }
-        // GUEST and PAID users can access /dashboard
-      }
-    } catch (error) {
-      // Invalid token - redirect to login
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('astro-tk');
-      console.log('working error')
-      return response;
-    }
-  }
+  //     // Role-based access control for regular users
+  //     if (pathname.startsWith('/dashboard/astrologers')) {
+  //       if (userRole !== 'ASTROLOGER') {
+  //         return NextResponse.redirect(new URL('/dashboard', request.url));
+  //       }
+  //     } else if (pathname.startsWith('/dashboard')) {
+  //       if (userRole === 'ADMIN') {
+  //         return NextResponse.redirect(new URL('/admin', request.url));
+  //       } else if (userRole === 'ASTROLOGER') {
+  //         return NextResponse.redirect(
+  //           new URL('/dashboard/astrologers', request.url)
+  //         );
+  //       }
+  //       // GUEST and PAID users can access /dashboard
+  //     }
+  //   } catch (error) {
+  //     // Invalid token - redirect to login
+  //     const response = NextResponse.redirect(new URL('/login', request.url));
+  //     response.cookies.delete('astro-tk');
+  //     console.log('working error')
+  //     return response;
+  //   }
+  // }
 
   // If logged in user tries to access public auth routes, redirect to dashboard
   if (
