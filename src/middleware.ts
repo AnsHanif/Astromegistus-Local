@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
       const secret = new TextEncoder().encode(
         process.env.NEXT_PUBLIC_TOKEN_SECRET!
       );
+      console.log(process.env.NEXT_PUBLIC_TOKEN_SECRET,'token')
       const { payload } = await jwtVerify(tkGr.value, secret);
       const userRole = payload.role as string;
 
@@ -81,6 +82,7 @@ export async function middleware(request: NextRequest) {
       // Invalid token - redirect to login
       const response = NextResponse.redirect(new URL('/login', request.url));
       response.cookies.delete('astro-tk');
+      console.log('working error')
       return response;
     }
   }
