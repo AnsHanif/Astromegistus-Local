@@ -40,19 +40,19 @@ interface CustomSelectProps {
 const variants = {
   default: {
     trigger:
-      'inline-flex items-center gap-2 px-4 py-2 border border-gray bg-white text-sm font-medium hover:border-white transition-colors focus:border-white',
+      'inline-flex items-center gap-2 px-4 py-2 border border-gray bg-white text-sm font-medium hover:border-white transition-colors focus:border-gradient',
     content: 'bg-white border border-gray-200 shadow-lg rounded-md',
     item: 'cursor-pointer px-3 py-2 text-sm text-gray-900',
   },
   compact: {
     trigger:
-      'inline-flex items-center gap-1 px-3 py-1 border border-gray-300 bg-white text-xs font-semibold text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-colors whitespace-nowrap focus:border-white',
+      'inline-flex items-center gap-1 px-3 py-1 border border-gray-300 bg-white text-xs font-semibold text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-colors whitespace-nowrap focus:border-gradient',
     content: 'bg-white border border-gray-200 shadow-lg rounded-md',
     item: 'cursor-pointer px-2 py-1.5 text-xs hover:bg-gray-100 text-gray-900',
   },
   large: {
     trigger:
-      'inline-flex items-center gap-3 px-6 py-4 border border-gray-300 bg-white text-base font-medium text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-colors w-full focus:border-white',
+      'inline-flex items-center gap-3 px-6 py-4 border border-gray-300 bg-white text-base font-medium text-gray-900 hover:border-gray-400 hover:bg-gray-50 transition-colors w-full focus:border-gradient',
     content: 'bg-white border border-gray-200 shadow-lg rounded-lg',
     item: 'cursor-pointer px-4 py-3 text-base hover:bg-gray-100 text-gray-900',
   },
@@ -186,7 +186,7 @@ export function CustomSelect({
                     }}
                     className={cn(
                       variantStyles.item,
-                      isSelected && 'bg-blue-50 text-black font-medium',
+                      isSelected && 'bg-golden-glow text-black font-semibold',
                       itemClassName
                     )}
                   >

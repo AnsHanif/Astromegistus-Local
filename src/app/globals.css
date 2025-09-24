@@ -4,7 +4,7 @@
 
 @font-face {
   font-family: 'Lato';
-  src: url('/fonts/lato.semibold.ttf') format('truetype');
+  src: url('/lato.semibold.ttf') format('truetype');
   font-weight: 600;
   font-style: normal;
 }
@@ -27,6 +27,7 @@
   --color-pink-shade: #eed66c;
   --color-golden-glow-dark: #ab6a1c;
   --color-grey-light-50: #f7f7f7;
+  --color-graphite: #3f3f3f;
 
   --default-font-family: var(--font-default);
 
@@ -80,3 +81,9 @@ body {
 /* .font-semibold {
   font-weight: 500;
 } */
+
+.focus\:border-gradient:focus {
+  border: 1px solid;
+  border-image-source: linear-gradient(90deg, var(--color-golden-glow) 0%, var(--color-pink-shade) 50%, var(--color-golden-glow-dark) 100%);
+  border-image-slice: 1;
+}

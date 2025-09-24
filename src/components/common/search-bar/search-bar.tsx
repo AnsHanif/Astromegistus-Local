@@ -2,7 +2,7 @@
 
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface SearchBarProps {
   placeholder?: string;
@@ -19,9 +19,21 @@ export default function SearchBar({
 }: SearchBarProps) {
   const [query, setQuery] = useState(value);
 
+  // Sync internal state with prop changes
+  useEffect(() => {
+    setQuery(value);
+  }, [value]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (onSearch) onSearch(query.trim());
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = e.target.value;
+    setQuery(newValue);
+    // Call onSearch immediately for real-time search
+    if (onSearch) onSearch(newValue.trim());
   };
 
   return (
@@ -30,7 +42,7 @@ export default function SearchBar({
       <Input
         type="text"
         value={query}
-        onChange={(e) => setQuery(e.target.value)}
+        onChange={handleChange}
         placeholder={placeholder}
         className="w-full border pl-10 text-gray-700  focus:ring-0 focus:border-black border-black focus:outline-none placeholder-gray-400 transition"
       />

@@ -14,6 +14,7 @@ type TimeOfBirthProps = {
   minute: string;
   timePeriod: string;
   className?: string;
+  parentClassName?: string;
   selectClassNames?: string;
   onChange: (field: 'hour' | 'minute' | 'timePeriod', value: string) => void;
 };
@@ -25,13 +26,14 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
   timePeriod,
   onChange,
   className = '',
+  parentClassName = '',
   selectClassNames = '',
 }) => {
   const {
     formState: { errors },
   } = useFormContext();
   return (
-    <div className="flex flex-col items-start space-y-4">
+    <div className={`flex flex-col items-start space-y-4 ${parentClassName}`}>
       {/* 1st */}
       <Label
         htmlFor="birth"
@@ -48,12 +50,12 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
           // classNames={{}}
           variant="default"
           size="sm"
-          showChevron={false}
+          showChevron={true}
           placeholder="Hour"
           selectedIcon={false}
           selectedValue={hour}
           className="w-full h-12 sm:h-15"
-          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
+          triggerClassName={`h-12 w-full text-sm md:text-size-secondary sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
 
@@ -65,10 +67,10 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
           variant="default"
           size="sm"
           placeholder="Mint"
-          showChevron={false}
+          showChevron={true}
           selectedValue={minute}
           className="w-full h-12 sm:h-15"
-          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
+          triggerClassName={`h-12 w-full text-sm md:text-size-secondary sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full  max-h-60 overflow-y-auto"
         />
 
@@ -80,10 +82,10 @@ const TimeOfBirth: FC<TimeOfBirthProps> = ({
           size="sm"
           variant="default"
           placeholder="Period"
-          showChevron={false}
+          showChevron={true}
           selectedValue={timePeriod}
           className="w-full h-12 sm:h-15"
-          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
+          triggerClassName={`h-12 w-full text-sm md:text-size-secondary sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
       </div>

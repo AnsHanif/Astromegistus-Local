@@ -20,19 +20,19 @@ export default function ExploreSection() {
         Explore Your Cosmic Readings & Sessions
       </h1>
 
-      <p className="mt-2 text-base max-w-[700px] mx-auto">
+      <p className="my-2 text-base max-w-[700px] mx-auto">
         From AI-powered automated readings to live sessions with expert
         astrologers, discover the perfect cosmic guidance for your journey
       </p>
 
       <div className="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
         <div>
-          <div className="relative h-[600px] w-full">
+          <div className="relative h-[400px] sm:h-[600px] w-full">
             <Image
               src="/product-banner.png"
               alt="Cosmic Video"
               fill
-              className="object-cover shadow-lg"
+              className="object-cover object-top shadow-lg"
             />
           </div>
           <p className="md:text-size-medium text-center mt-2">

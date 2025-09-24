@@ -6,7 +6,7 @@ import FormInput from '@/components/common/form-input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Mail, Phone, MapPin } from 'lucide-react';
+import { Mail, MapPin } from 'lucide-react';
 
 type EditProfileForm = {
   fullName: string;
@@ -115,9 +115,6 @@ export default function ContactPage() {
           <div className="flex items-center gap-4">
             <Mail size={24} className="mb-0.5" /> Email:{' '}
             <span className="underline">info@astromegistus.com</span>
-          </div>
-          <div className="flex items-center gap-4">
-            <Phone size={24} className="mb-0.5" /> Phone: (210) 803 6687
           </div>
           <div className="flex items-center gap-4">
             <MapPin size={24} className="mb-0.5" /> Address: 1911 Crossgate

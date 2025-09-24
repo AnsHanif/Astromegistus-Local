@@ -3,11 +3,3 @@ export type PaymentOption = {
   label: string;
   icon: React.ReactNode;
 };
-
-export interface CardPaymentData {
-  name: string;
-  number: string;
-  month: string;
-  year: string;
-  cvc: string;
-}

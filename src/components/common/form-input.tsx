@@ -21,6 +21,7 @@ interface FormInputProps {
   leftText?: string;
   label?: string;
   labelClassName?: string;
+  style?: React.CSSProperties;
 }
 
 const FormInput: React.FC<FormInputProps> = ({
@@ -37,6 +38,7 @@ const FormInput: React.FC<FormInputProps> = ({
   leftText,
   label,
   labelClassName = '',
+  style,
 }) => {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -86,6 +88,7 @@ const FormInput: React.FC<FormInputProps> = ({
           onChange={handleChange}
           readOnly={readOnly}
           disabled={disabled}
+          style={style}
           className={`!w-full border border-grey h-13 md:h-15 mt-2 pr-10 placeholder:text-grey ${className} ${
             readOnly || disabled ? 'opacity-50 cursor-not-allowed' : ''
           }`}

@@ -6,7 +6,7 @@ import Link from '@/components/common/custom-link/custom-link';
 import { FormProvider, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { useSnackbar } from 'notistack';
-import { useForgotPassword } from '@/hooks/mutation/auth-muatation/auth';
+import { useForgotPassword } from '@/hooks/mutation/auth-mutation/auth';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import Cookies from 'js-cookie';
 

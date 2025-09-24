@@ -8,6 +8,7 @@ interface PaymentOptionCardProps {
   selected: boolean;
   onSelect: () => void;
   classNames?: string;
+  disabled?: boolean;
 }
 
 const PaymentOptionCard = ({
@@ -15,12 +16,18 @@ const PaymentOptionCard = ({
   selected,
   onSelect,
   classNames = '',
+  disabled = false,
 }: PaymentOptionCardProps) => {
   return (
     <div
-      onClick={onSelect}
-      className={`p-4 w-full cursor-pointer border bg-grey-light-50 flex items-center gap-3 transition-all
+      onClick={disabled ? undefined : onSelect}
+      className={`p-4 w-full border bg-grey-light-50 flex items-center gap-3 transition-all
       ${selected ? 'border-bronze text-bronze' : 'border-[#D9D9D9] text-black'}
+      ${
+        disabled
+          ? 'opacity-50 cursor-not-allowed pointer-events-none'
+          : 'cursor-pointer'
+      }
       ${classNames}`}
     >
       <p

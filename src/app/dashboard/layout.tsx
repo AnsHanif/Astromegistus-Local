@@ -1,4 +1,7 @@
 'use client';
+import { useEffect, useMemo } from 'react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 import React, { FC, ReactNode, useState } from 'react';
 
 type ThemeKey = 'guest' | 'classic' | 'premier';
@@ -59,12 +62,44 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
-  const [userType] = useState<'classic' | 'premier' | 'guest'>('classic');
+  const userInfo = useSelector((state: RootState) => state.user.currentUser);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
-  const theme = themeMap[userType];
+  const themeKey: ThemeKey = useMemo(() => {
+    if (userInfo) {
+      if (userInfo.role === 'GUEST') return 'guest';
+
+      if (userInfo.role === 'PAID') {
+        if (
+          Array.isArray(userInfo.subscriptions) &&
+          userInfo.subscriptions.length > 0
+        ) {
+          const planName = userInfo.subscriptions[0]?.plan?.name;
+          if (planName === 'CLASSIC') return 'classic';
+          if (planName === 'PREMIER') return 'premier';
+        } else {
+          if (userRole === 'CLASSIC') return 'classic';
+          if (userRole === 'PREMIER') return 'premier';
+          return 'guest';
+        }
+      }
+    } else {
+      if (userRole === 'CLASSIC') return 'classic';
+      if (userRole === 'PREMIER') return 'premier';
+      return 'guest';
+    }
+    return 'guest';
+  }, [userInfo, userRole]);
+
+  const theme = themeMap[themeKey];
+
   const styleVars: React.CSSProperties = Object.fromEntries(
     Object.entries(theme.cssVars).map(([k, v]) => [k, v])
   ) as React.CSSProperties;
+
+  useEffect(() => {
+    setUserRole(localStorage.getItem('role'));
+  }, []);
 
   return (
     <div

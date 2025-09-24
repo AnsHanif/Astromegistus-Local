@@ -7,10 +7,13 @@ import Link from '@/components/common/custom-link/custom-link';
 
 import { FormProvider, useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
-import { useLoginUser } from '@/hooks/mutation/auth-muatation/auth';
+import { useLoginUser } from '@/hooks/mutation/auth-mutation/auth';
 import { useSnackbar } from 'notistack';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
+import { useDispatch } from 'react-redux';
+import { setCurrentUser } from '@/store/slices/user-slice';
 
 type LoginForm = {
   email: string;
@@ -21,6 +24,8 @@ type LoginPageProps = { onSuccess: () => void };
 
 const LoginPage = ({ onSuccess }: LoginPageProps) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const router = useRouter();
+  const dispatch = useDispatch();
 
   const methods = useForm<LoginForm>({
     mode: 'onBlur',
@@ -32,9 +37,36 @@ const LoginPage = ({ onSuccess }: LoginPageProps) => {
   const onSubmit = (data: LoginForm) => {
     mutate(data, {
       onSuccess: (response: any) => {
-        console.log(response?.data);
         closeSnackbar();
         enqueueSnackbar(response?.message, { variant: 'success' });
+
+        if (response?.data?.token && response?.data?.user) {
+          const { user, token } = response.data;
+
+          let resolvedRole = 'GUEST';
+          if (
+            Array.isArray(user.subscriptions) &&
+            user.subscriptions.length > 0
+          ) {
+            const planName = user.subscriptions[0]?.plan?.name;
+            if (planName === 'CLASSIC') resolvedRole = 'CLASSIC';
+            if (planName === 'PREMIER') resolvedRole = 'PREMIER';
+          } else {
+            resolvedRole = 'GUEST';
+          }
+
+          localStorage.setItem('role', resolvedRole);
+          Cookies.set('astro-tk', token);
+          dispatch(setCurrentUser({ user, token }));
+
+          if (user.role === 'ADMIN') {
+            window.location.href = '/admin';
+          } else if (user.role === 'ASTROLOGER') {
+            window.location.href = '/dashboard/astrologers';
+          } else {
+            window.location.href = '/dashboard/booked-readings';
+          }
+        }
       },
       onError: (error: any) => {
         console.log(error);
@@ -51,6 +83,14 @@ const LoginPage = ({ onSuccess }: LoginPageProps) => {
         ) {
           Cookies.set('temp-tk-astro', error?.response?.data?.data?.token);
           onSuccess();
+        }
+
+        if (
+          error?.response?.data?.status_code === 402 &&
+          error?.response?.data?.data?.token
+        ) {
+          Cookies.set('temp-nutk-astro', error?.response?.data?.data?.token);
+          router.push('/pricing-plans');
         }
 
         closeSnackbar();
@@ -128,7 +168,10 @@ const LoginPage = ({ onSuccess }: LoginPageProps) => {
 
           <div className="text-center">
             Dont't have an account?{' '}
-            <Link href="/signup" className="text-golden-yellow hover:underline">
+            <Link
+              href="/auth-selection"
+              className="text-golden-yellow hover:underline"
+            >
               Sign Up
             </Link>
           </div>

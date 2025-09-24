@@ -9,8 +9,8 @@ const Login = () => {
 
   const handleSuccess = (data: any) => {
     setShowOtpForm(false);
-    console.log('working', data);
   };
+
   return (
     <>
       {!showOtpForm ? (

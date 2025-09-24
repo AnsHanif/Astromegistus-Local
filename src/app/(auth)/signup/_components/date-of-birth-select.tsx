@@ -10,6 +10,7 @@ type DateOfBirthProps = {
   month: string;
   year: string;
   className?: string;
+  parentClassName?: string;
   selectClassNames?: string;
   onChange: (field: 'day' | 'month' | 'year', value: string) => void;
 };
@@ -21,13 +22,15 @@ function DateOfBirthSelect({
   year,
   onChange,
   className = '',
+  parentClassName = '',
   selectClassNames = '',
 }: DateOfBirthProps) {
+  // console.log('day , ', day, 'mont , ', month, 'year ', year);
   const {
     formState: { errors },
   } = useFormContext();
   return (
-    <div className="flex flex-col items-start space-y-4">
+    <div className={`flex flex-col items-start space-y-4 ${parentClassName}`}>
       <Label className="text-size-tertiary sm:text-size-medium font-semibold">
         Date of Birth
       </Label>
@@ -40,7 +43,7 @@ function DateOfBirthSelect({
           placeholder="Day"
           selectedValue={day}
           className="w-full h-12 sm:h-15"
-          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
+          triggerClassName={`h-12 w-full text-sm md:text-size-secondary sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
         <CustomSelect
@@ -49,7 +52,7 @@ function DateOfBirthSelect({
           placeholder="Month"
           selectedValue={month}
           className="w-full h-12 sm:h-15"
-          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
+          triggerClassName={`h-12 text-sm md:text-size-secondary w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
         <CustomSelect
@@ -58,7 +61,7 @@ function DateOfBirthSelect({
           placeholder="Year"
           selectedValue={year}
           className="w-full h-12 sm:h-15"
-          triggerClassName={`h-12 w-full sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
+          triggerClassName={`h-12 w-full text-sm md:text-size-secondary sm:h-15 cursor-pointer bg-transparent border-grey ${className}`}
           contentClassName="w-full max-h-60 overflow-y-auto"
         />
       </div>

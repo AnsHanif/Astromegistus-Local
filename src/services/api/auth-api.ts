@@ -5,7 +5,7 @@ import {
   ResetPassword,
   SignUpUser,
   VerifyEmail,
-} from '@/hooks/mutation/auth-muatation/auth-service.type';
+} from '@/hooks/mutation/auth-mutation/auth-service.type';
 import axiosInstance from '../axios';
 
 export const authAPI = {

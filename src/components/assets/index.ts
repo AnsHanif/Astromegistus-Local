@@ -21,6 +21,21 @@ import Member3 from './images/member-3.png';
 import StartJourneyBG from './images/start-journey-bg.png';
 import CareerHeroBG from './images/hero-career.png';
 
+// SVG Icons
+import BroadcastingIcon from './svg-icons/broadcasting-icon';
+import CalendarIcon from './svg-icons/calendar-icon';
+import ClockIcon from './svg-icons/clock-icon';
+import DateIcon from './svg-icons/date-icon';
+import ListenLiveIcon from './svg-icons/listen-live-icon';
+import NotebookIcon from './svg-icons/notebook-icon';
+import PrepareIcon from './svg-icons/prepare-icon';
+import RadioIcon from './svg-icons/radio-icon';
+import StartSessionIcon from './svg-icons/start-session-icon';
+import SuccessIcon from './svg-icons/success-icon';
+import TimeIcon from './svg-icons/time-icon';
+import TimerIcon from './svg-icons/timer-icon';
+import UsersIcon from './svg-icons/users-icon';
+
 export {
   logo,
   PricingImg,
@@ -44,4 +59,18 @@ export {
   AboutMissionImg,
   AboutHowWorkImg,
   AstrologyCoachingImage,
+  // SVG Icons
+  BroadcastingIcon,
+  CalendarIcon,
+  ClockIcon,
+  DateIcon,
+  ListenLiveIcon,
+  NotebookIcon,
+  PrepareIcon,
+  RadioIcon,
+  StartSessionIcon,
+  SuccessIcon,
+  TimeIcon,
+  TimerIcon,
+  UsersIcon,
 };

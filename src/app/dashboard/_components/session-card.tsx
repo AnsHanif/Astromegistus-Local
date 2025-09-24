@@ -1,3 +1,4 @@
+'use client';
 import React, { JSX } from 'react';
 import { Button } from '@/components/ui/button';
 import { Clock, Download, Eye, Radio } from 'lucide-react';
@@ -46,24 +47,25 @@ export default function SessionCard({ type }: SessionCardProps): JSX.Element {
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 max-w-lg">
-        <Button className="flex items-center gap-2 flex-1 text-black" disabled>
-          {type === 'preparing' ? (
-            <>
-              <Radio /> Join Session
-            </>
-          ) : (
-            <>
-              <Eye className="mb-0.5" /> View Reading
-            </>
-          )}
-        </Button>
+        {type === 'preparing' ? (
+          <Button className="flex items-center gap-2 flex-1 text-black" disabled>
+            <Radio /> Join Session
+          </Button>
+        ) : (
+          <Button
+            className="flex items-center justify-center gap-2 flex-1 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black"
+            onClick={() => window.location.href = '/dashboard/view-reading'}
+          >
+            <Eye className="h-5 w-5" /> View Reading
+          </Button>
+        )}
 
-        <Button className="flex items-center gap-2 flex-1 bg-transparent text-golden-glow  border border-golden-glow">
+        <Button className="flex items-center justify-center gap-2 flex-1 bg-transparent text-golden-glow  border border-golden-glow">
           {type === 'preparing' ? (
             'Rescheduled'
           ) : (
             <>
-              <Download /> Download PDF
+              <Download className="h-5 w-5" /> Download PDF
             </>
           )}
         </Button>

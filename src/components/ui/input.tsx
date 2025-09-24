@@ -12,7 +12,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
         // "focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]",
 
         'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
-        'border border-[#848D8A]/20 h-12 md:h-15 focus:ring-1 focus:ring-primary focus:border-transparent',
+        'border border-[#848D8A]/20 h-12 md:h-15 focus:border-gradient focus:ring-0',
         className
       )}
       {...props}

@@ -1,8 +1,13 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import OrderSummaryPage from './_components/order-summary-page';
+import FullScreenLoader from '@/components/common/full-screen-loader';
 
 const OrderSummary = () => {
-  return <OrderSummaryPage />;
+  return (
+    <Suspense fallback={<FullScreenLoader />}>
+      <OrderSummaryPage />
+    </Suspense>
+  );
 };
 
 export default OrderSummary;

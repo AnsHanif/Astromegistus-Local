@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import ProductHighlightSection from './product-hightlight-section';
 import ProductOverview from './product-overview';
 import WhatsIncluded from './whats-included';
@@ -8,10 +8,33 @@ import ExploreAstroCoaching from './explore-astro-coaching';
 import ProductPricingInfo from './product-pricing-info';
 import SectionDivider from './section-divider';
 import TestimonialSlider from './testimonial-slider';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useGetProductDetial } from '@/hooks/query/product-queries';
+import FullScreenLoader from '@/components/common/full-screen-loader';
+import { getErrorMessage } from '@/utils/error-handler';
+import { enqueueSnackbar, closeSnackbar } from 'notistack';
 
 const ProductDetailPage = () => {
   const route = useRouter();
+  const params = useParams();
+  const productId = params.productId as string;
+
+  const {
+    data: productInfo,
+    isLoading,
+    isError,
+    error,
+  } = useGetProductDetial(productId);
+
+  useEffect(() => {
+    if (isError) {
+      closeSnackbar();
+      enqueueSnackbar(getErrorMessage(error), {
+        variant: 'error',
+      });
+    }
+  }, [error]);
+
   const product = {
     id: '1',
     name: 'Herval Shampoo',
@@ -44,6 +67,7 @@ const ProductDetailPage = () => {
 
   return (
     <div>
+      {isLoading && <FullScreenLoader />}
       <div className="max-w-[1440px] mx-auto w-full px-4 sm:px-8 py-6 md:py-10 space-y-6">
         <ProductHighlightSection
           title="Soul => Life Path => Current Situation => Path Forward"
@@ -60,7 +84,12 @@ predictive cycles, fixed stars • 2 automated readings • 1 follow-up live ses
           classNames="max-w-[45rem] mt-[2rem]"
           text="Product Price"
         />
-        <ProductPricingInfo onClick={addToCart} />
+        <ProductPricingInfo
+          sessionPrice={
+            productInfo?.product?.pricing?.automated?.discountedPrice ?? 0
+          }
+          onClick={addToCart}
+        />
         <TestimonialSlider />
       </div>
 

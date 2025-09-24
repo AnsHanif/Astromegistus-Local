@@ -11,7 +11,7 @@ const Link: FC<CustomLinkProps> = ({
 }) => {
   return (
     <NextLink
-      className={`inline-block ${customLinkStyles[styleType]} ${className}`}
+      className={`${customLinkStyles[styleType]} ${className}`}
       href={href}
     >
       {children}

@@ -1,3 +1,4 @@
+'use client';
 import { JSX } from 'react';
 import Image from 'next/image';
 import { Clock, Download, Eye, Radio } from 'lucide-react';
@@ -49,7 +50,7 @@ export default function BookedProducts({
           {duration}
         </div>
 
-        {type === 'live' && (
+        {/* {type === 'live' && (
           <div className="flex items-start text-sm mb-4">
             <span className="mr-2 mt-0.5">
               <Radio className="w-4 h-4" />
@@ -59,16 +60,19 @@ export default function BookedProducts({
               <span> Aug 15, 2025, 2:00 PM (EST)</span>
             </div>
           </div>
-        )}
+        )} */}
 
         {type === 'reading' && (
           <div className="mt-24 md:mt-40 flex flex-col sm:flex-row gap-5">
-            <Button className="flex items-center gap-2 flex-1 bg-transparent text-golden-glow  border border-golden-glow">
-              <Eye className="mb-0.5" /> View Reading
+            <Button
+              className="flex items-center justify-center gap-2 flex-1 bg-transparent text-golden-glow border border-golden-glow hover:bg-golden-glow hover:text-black transition-colors px-2"
+              onClick={() => window.location.href = '/dashboard/view-reading'}
+            >
+              <Eye className="h-5 w-5" /> View Reading
             </Button>
 
-            <Button className="flex items-center gap-2 flex-1 text-black">
-              <Download /> Download PDF
+            <Button className="flex items-center justify-center gap-2 flex-1 text-black px-2">
+              <Download className="h-5 w-5" /> Download PDF
             </Button>
           </div>
         )}
@@ -76,10 +80,10 @@ export default function BookedProducts({
         {type === 'live' && (
           <div className="mt-24 md:mt-40 flex flex-col sm:flex-row gap-5">
             <Button
-              className="flex items-center gap-2 flex-1 text-black"
+              className="flex items-center justify-center gap-2 flex-1 text-black"
               disabled
             >
-              <Radio /> Join Session
+              <Radio className="h-5 w-5" /> Join Session
             </Button>
           </div>
         )}

@@ -1,6 +1,5 @@
 'use client';
-
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import AuthForm from '../../_components/auth-form';
 import { FormProvider, useForm } from 'react-hook-form';
 import FormInput from '@/components/common/form-input';
@@ -11,10 +10,11 @@ import { Button } from '@/components/ui/button';
 import Link from '@/components/common/custom-link/custom-link';
 import DateOfBirthSelect from './date-of-birth-select';
 import TimeOfBirth from './time-of-birth';
-import { useSignUpUser } from '@/hooks/mutation/auth-muatation/auth';
+import { useSignUpUser } from '@/hooks/mutation/auth-mutation/auth';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import { useSnackbar } from 'notistack';
 import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 type SignupForm = {
   fullName: string;
@@ -36,8 +36,10 @@ type SignupForm = {
 type SignupPageProps = { onSuccess: () => void };
 
 const SignupPage = ({ onSuccess }: SignupPageProps) => {
+  const router = useRouter();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
+  const [formSession, setFormSession] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     day: '',
     month: '',
@@ -83,6 +85,7 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
   );
 
   const onSubmit = (data: SignupForm) => {
+    if (!formSession) return;
     let hasError = false;
 
     if (!formData.day || !formData.month || !formData.year) {
@@ -129,6 +132,7 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
       password,
       gender,
       birthCountry,
+      type: formSession,
       dateOfBirth: { day, month, year },
       timeOfBirth: { hour, minute, timePeriod },
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
@@ -155,9 +159,20 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
     });
   };
 
+  useEffect(() => {
+    const type = sessionStorage.getItem('signup-type');
+    if (!type) {
+      router.replace('/auth-selection');
+    } else {
+      setFormSession(type);
+    }
+  }, [router]);
+
   return (
     <AuthForm
-      heading="Join Astromegistus"
+      heading={`Join Astromegistus ${
+        formSession === 'guest' ? 'as Guest' : ''
+      }`}
       subheading="Begin your cosmic journey with us"
       buttonText="Create Account"
     >
@@ -323,7 +338,7 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
         </form>
 
         <Button
-          className="md:w-[470px] w-full text-black"
+          className="w-full max-w-[129px] h-[60px] text-black p-2 sm:w-[129px]"
           onClick={methods.handleSubmit(onSubmit)}
           disabled={isPending}
         >

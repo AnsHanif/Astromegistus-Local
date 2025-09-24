@@ -9,10 +9,14 @@ import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { logo } from '../../../components/assets';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { ShoppingCart } from 'lucide-react';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 
 const navItems = [
   { label: 'Home', href: '/' },
   { label: 'Products', href: '/products' },
+  { label: 'Coaching', href: '/coaching' },
   { label: 'About Us', href: '/about-us' },
   { label: 'Contact', href: '/contact' },
   { label: 'Career', href: '/career' },
@@ -20,20 +24,21 @@ const navItems = [
 ];
 
 export default function LandingHeader() {
+  const userInfo = useSelector((state: RootState) => state.user.currentUser);
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   return (
-    <header className="bg-emerald-green text-white px-4 sm:px-8 py-2 shadow-md">
+    <header className="bg-emerald-green text-white px-4 sm:px-8 py-1 shadow-md">
       <div className="flex items-center justify-between mx-auto">
         <div className="flex items-center">
           <Image
             src={logo}
             alt="Astromegistus Logo"
-            width={80}
-            height={80}
+            width={60}
+            height={60}
             className="object-contain cursor-pointer"
             onClick={() => router.push('/')}
           />
@@ -54,23 +59,44 @@ export default function LandingHeader() {
                 {item.label}
               </Link>
             ))}
+            <Link href="/shopping-cart">
+              <ShoppingCart
+                className={`w-4 h-4 cursor-pointer ${
+                  pathname === '/shopping-cart'
+                    ? 'text-white'
+                    : 'text-[#FFFFFF66] hover:text-white'
+                }`}
+              />
+            </Link>
           </nav>
 
           <div className="flex items-center space-x-8">
-            <Button
-              variant="ghost"
-              className="text-white font-semibold p-0"
-              onClick={() => router.push('/login')}
-            >
-              Login
-            </Button>
-            <Button
-              variant="default"
-              className="bg-white text-emerald-green font-semibold px-6 hover:opacity-90"
-              onClick={() => router.push('/auth-selection')}
-            >
-              Sign Up
-            </Button>
+            {userInfo ? (
+              <Button
+                variant="default"
+                className="bg-white text-emerald-green font-semibold px-4 py-2 hover:opacity-90"
+                onClick={() => router.push('/dashboard/booked-readings')}
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  className="text-white font-semibold p-0 hover:bg-white/10"
+                  onClick={() => router.push('/login')}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-white text-emerald-green font-semibold px-4 py-2 hover:opacity-90"
+                  onClick={() => router.push('/auth-selection')}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
@@ -111,20 +137,32 @@ export default function LandingHeader() {
           </nav>
 
           <div className="flex flex-col space-y-4 pt-4">
-            <Button
-              variant="ghost"
-              className="text-white font-semibold w-full py-4"
-              onClick={() => router.push('/login')}
-            >
-              Login
-            </Button>
-            <Button
-              variant="default"
-              className="bg-white text-emerald-green font-semibold w-full py-4 hover:opacity-90"
-              onClick={() => router.push('/auth-selection')}
-            >
-              Sign Up
-            </Button>
+            {userInfo ? (
+              <Button
+                variant="default"
+                className="bg-white text-emerald-green font-semibold w-full px-4 py-2 hover:opacity-90"
+                onClick={() => router.push('/dashboard/booked-readings')}
+              >
+                Dashboard
+              </Button>
+            ) : (
+              <>
+                <Button
+                  variant="ghost"
+                  className="text-white font-semibold w-full py-4"
+                  onClick={() => router.push('/login')}
+                >
+                  Login
+                </Button>
+                <Button
+                  variant="default"
+                  className="bg-white text-emerald-green font-semibold w-full px-4 py-2 hover:opacity-90"
+                  onClick={() => router.push('/auth-selection')}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
           </div>
         </div>
       </div>

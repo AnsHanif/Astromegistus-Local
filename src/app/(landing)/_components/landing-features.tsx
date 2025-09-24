@@ -5,7 +5,7 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Clock } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import KeyFeaturesCard from '../products/_components/key-features-card';
+import KeyFeaturesCard from '../products/flow/_components/key-features-card';
 
 const LandingFeatures = () => {
   return (
@@ -20,11 +20,11 @@ const LandingFeatures = () => {
           alt="Banner"
           fill
           priority
-          className="object-cover"
+          className="object-contain md:object-cover object-center"
         />
       </div>
 
-      <div className="flex flex-col md:flex-row items-center md:items-stretch md:justify-between 2xl:justify-around gap-4 md:gap-8 w-full py-6">
+      <div className="flex flex-col md:flex-row items-start md:items-stretch md:justify-between 2xl:justify-around gap-4 md:gap-8 w-full py-6">
         <KeyFeaturesCard
           classNames="max-w-[500px] w-full py-8 px-12"
           features={[
@@ -49,7 +49,7 @@ const LandingFeatures = () => {
             readings + 1 follow up live-session + 30 min coaching
           </p>
 
-          <div className="flex itme gap-2 text-sm mb-6">
+          <div className="flex items-center gap-2 text-sm mb-6">
             <Clock className="w-5 h-5" />
             <p className="mt-0.5">120 min + 60 min prep</p>
           </div>

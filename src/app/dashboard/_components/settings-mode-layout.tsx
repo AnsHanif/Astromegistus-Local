@@ -1,41 +1,42 @@
 'use client';
 import type { FC, ReactNode } from 'react';
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface SettingsModeLayoutProps {
   heading: string;
   subheading: string;
   children: ReactNode;
+  classNames?: string;
 }
 
 const SettingsModeLayout: FC<SettingsModeLayoutProps> = ({
   heading,
   subheading,
   children,
+  classNames = '',
 }) => {
   const router = useRouter();
   return (
-    <div className="min-h-screen px-4 sm:px-8 py-8 flex flex-col md:flex-row">
-      <div className="px-0 md:px-2">
+    <div
+      className={`min-h-screen px-2 sm:px-8 py-8 flex flex-col ${classNames}`}
+    >
+      {/* Arrow + Heading in one row */}
+      <div className="flex items-center mb-2 -ml-1 md:-ml-2">
         <ArrowLeft
-          className="h-6 w-6 md:h-8 md:w-8 my-2 cursor-pointer"
+          className="h-6 w-6 md:h-8 md:w-8 mr-2 cursor-pointer"
           onClick={() => router.back()}
         />
-      </div>
-
-      <div className="flex-1">
-        <h1 className="text-size-heading md:text-size-primary font-bold">
+        <h1 className="text-size-large md:text-size-heading font-bold">
           {heading}
         </h1>
-        <p className="text-sm">{subheading}</p>
-
-        <div className="py-8">{children}</div>
       </div>
 
-      <div className="px-2 hidden md:block">
-        <Settings className="h-6 w-6" />
-      </div>
+      {/* Subheading */}
+      <p className="text-sm">{subheading}</p>
+
+      {/* Main content */}
+      <div className="py-8">{children}</div>
     </div>
   );
 };

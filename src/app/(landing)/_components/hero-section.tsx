@@ -7,7 +7,7 @@ import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 export default function HeroSection() {
   return (
     <div
-      className="h-[600px] bg-cover bg-center text-white px-4 sm:px-8 flex flex-col items-center justify-center text-center"
+      className="h-[600px] bg-cover bg-bottom bg-no-repeat text-white px-4 sm:px-8 flex flex-col items-center justify-center text-center"
       style={{ backgroundImage: `url(${HeroBG.src})` }}
     >
       <h1 className="text-size-primary md:text-size-heading-2xl font-bold leading-tight">

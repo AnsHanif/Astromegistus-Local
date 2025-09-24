@@ -8,7 +8,7 @@ import { useSnackbar } from 'notistack';
 import {
   useResendCode,
   useVerifyEmail,
-} from '@/hooks/mutation/auth-muatation/auth';
+} from '@/hooks/mutation/auth-mutation/auth';
 import Cookies from 'js-cookie';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 

@@ -6,9 +6,13 @@ import ArrowBackIcon from '@/components/assets/svg-icons/arrow-back-icon';
 
 interface ProductPricingInfoProps {
   onClick: () => void;
+  sessionPrice?: string;
 }
 
-const ProductPricingInfo: FC<ProductPricingInfoProps> = ({ onClick }) => {
+const ProductPricingInfo: FC<ProductPricingInfoProps> = ({
+  onClick,
+  sessionPrice,
+}) => {
   return (
     <div>
       {/* Heading */}
@@ -18,11 +22,12 @@ const ProductPricingInfo: FC<ProductPricingInfoProps> = ({ onClick }) => {
 
       {/* Price */}
       <div className="md:text-size-medium mb-8">
-        Live Session: <span className="text-bronze text-sm">$749</span>
+        Live Session:{' '}
+        <span className="text-bronze text-sm">${sessionPrice}</span>
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col gap-4 items-start max-w-[340px]">
+      <div className="flex flex-col gap-4 items-start max-w-[280px] md:max-w-[340px]">
         {/* Back Button - outlined style */}
         <Button
           variant="outline"

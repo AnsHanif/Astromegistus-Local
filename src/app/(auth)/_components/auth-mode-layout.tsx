@@ -18,7 +18,7 @@ const AuthModeLayout: FC<AuthModeLayoutProps> = ({ children }) => {
     <div className="text-white min-h-screen h-full bg-gradient-to-b from-black to-emerald-green relative">
       <Header />
 
-      <div className="h-24 w-24 md:w-32 md:h-32 mx-auto absolute left-0 right-0 top-[100px] z-[1]">
+      <div className="h-24 w-24 md:w-32 md:h-32 mx-auto absolute left-0 right-0 top-[80px] z-[1]">
         <Image
           src={logo}
           alt="Astromegistus Logo"
