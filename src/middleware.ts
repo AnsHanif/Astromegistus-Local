@@ -57,9 +57,8 @@ export async function middleware(request: NextRequest) {
   if (tkGr && !isPublicRoute && !pathname.startsWith('/admin')) {
     try {
       const secret = new TextEncoder().encode(
-        process.env.NEXT_PUBLIC_TOKEN_SECRET!
+        "Astromegistus@2025!aRt91Qv7Zx!mLdE#4pHs"
       );
-      console.log(process.env.NEXT_PUBLIC_TOKEN_SECRET,'token')
       const { payload } = await jwtVerify(tkGr.value, secret);
       const userRole = payload.role as string;
 
