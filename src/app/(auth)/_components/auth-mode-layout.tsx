@@ -1,7 +1,6 @@
 'use client';
 
 import React, { FC, ReactNode } from 'react';
-import PrimaryImage from '@/components/common/primary-image/primary-image';
 import Header from './header';
 import AuthTabs from './auth-tabs';
 import Image from 'next/image';
@@ -24,18 +23,16 @@ const AuthModeLayout: FC<AuthModeLayoutProps> = ({ children }) => {
           alt="Astromegistus Logo"
           width={128}
           height={128}
+          priority
           className="w-full h-full object-contain cursor-pointer"
           onClick={() => router.push('/')}
         />
       </div>
 
       {/* Background Image */}
-      <PrimaryImage
-        width={1920}
-        height={400}
-        alt="Star Background"
+      <img
         src="/test-stars.png"
-        className="object-contain w-full h-full absolute inset-0"
+        className="object-cover w-full h-full absolute inset-0 scale-100"
       />
 
       {/* Centered White Box */}

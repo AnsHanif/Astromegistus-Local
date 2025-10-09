@@ -23,10 +23,10 @@ export default function AboutUsMission() {
       </div>
       <div className="flex items-center justify-center">
         <div className="max-w-[500px] space-y-8 text-center md:text-left">
-          <h1 className="text-size-heading md:text-size-primary font-bold">
+          <h1 className="text-5xl font-bold">
             Our Mission
           </h1>
-          <p className="text-size-tertiary font-normal">
+          <p className="text-base font-normal">
             Lorem ipsum dolor sit amet consectetur. Facilisis neque sodales non
             egestas. Habitasse odio nam turpis metus massa amet hac aliquam
             orci. Nunc dignissim est quis adipiscing morbi elementum eget est
@@ -34,7 +34,7 @@ export default function AboutUsMission() {
             Ullamcorper id vivamus nullam tincidunt venenatis amet. Semper sit
             senectus scelerisque bibendum sed.
           </p>
-          <p className="text-size-tertiary font-normal">
+          <p className="text-base font-normal">
             Eeu sociis facilisi vitae sodales egestas vestibulum iaculis
             pellentesque. Urna eu elementum ac nec dui amet curabitur sit. Eget
             elit mi eu in arcu nisl vitae mauris placerat. Ut fringilla semper

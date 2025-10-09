@@ -47,6 +47,7 @@ export interface CreateCoachingSessionWithImageRequest {
   category: 'LIFE_COACHES' | 'CAREER_COACHES' | 'RELATIONSHIP_COACHES';
   isActive: boolean;
   features: string[];
+  packages: CoachingPackage[];
   image: File;
 }
 
@@ -59,6 +60,7 @@ export interface UpdateCoachingSessionRequest {
   category?: 'LIFE_COACHES' | 'CAREER_COACHES' | 'RELATIONSHIP_COACHES';
   isActive?: boolean;
   features?: string[];
+  packages?: CoachingPackage[];
 }
 
 export interface UpdateCoachingSessionWithImageRequest {
@@ -70,6 +72,7 @@ export interface UpdateCoachingSessionWithImageRequest {
   category?: 'LIFE_COACHES' | 'CAREER_COACHES' | 'RELATIONSHIP_COACHES';
   isActive?: boolean;
   features?: string[];
+  packages?: CoachingPackage[];
   image: File;
 }
 
@@ -77,4 +80,6 @@ export interface CoachingQueryParams {
   search?: string;
   status?: 'Active' | 'Inactive';
   category?: 'LIFE_COACHES' | 'CAREER_COACHES' | 'RELATIONSHIP_COACHES';
+  page?: number;
+  limit?: number;
 }

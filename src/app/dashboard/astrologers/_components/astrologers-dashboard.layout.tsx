@@ -2,18 +2,21 @@
 import type { FC, ReactNode } from 'react';
 import { Settings } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSelector } from 'react-redux';
+import { RootState } from '@/store/store';
 import AstrologersDashboardTabs from './astrologers-dashboard-tabs';
 
 interface AstrologersDashboardLayoutProps {
-  name?: string;
   children: ReactNode;
 }
 
 const AstrologersDashboardLayout: FC<AstrologersDashboardLayoutProps> = ({
-  name = 'Jhon',
   children,
 }) => {
   const router = useRouter();
+  const currentUser = useSelector((state: RootState) => state.user.currentUser);
+  const name = currentUser?.name || '';
+
   return (
     <div className="p-4 sm:p-6 lg:p-8">
       <div className="flex justify-end items-center gap-5 mb-4">
@@ -24,7 +27,7 @@ const AstrologersDashboardLayout: FC<AstrologersDashboardLayoutProps> = ({
       </div>
 
       <div className="text-white mb-4">
-        <h1 className="text-xl md:text-2xl lg:text-3xl mb-2 font-bold">
+        <h1 className="text-xl md:text-2xl lg:text-3xl mb-2 font-bold capitalize">
           Welcome Back, {name}
         </h1>
 

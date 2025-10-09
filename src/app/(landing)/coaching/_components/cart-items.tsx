@@ -34,9 +34,12 @@ export default function CartItems() {
 
     // update localStorage
     localStorage.setItem('cart', JSON.stringify(updatedCart));
+
+    // Dispatch custom event to update cart count
+    window.dispatchEvent(new Event('cartUpdated'));
   };
 
-  const total = cartItems.reduce((sum, item) => sum + item.price, 0);
+  const total = cartItems.reduce((sum, item) => sum + (item.price * item.qty), 0);
 
   if (!cartItems || !cartItems.length) {
     return null;

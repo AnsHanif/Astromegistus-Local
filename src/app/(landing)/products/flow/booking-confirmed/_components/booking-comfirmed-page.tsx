@@ -2,13 +2,13 @@
 
 import React from 'react';
 import ProductInfoHeader from '../../_components/product-info-header';
-import ReadingSessionCard from './reading-card-session';
-import { Button } from '@/components/ui/button';
 import SuccessAnimation from '@/components/common/success-animation';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import InstantReading from './instant-reading';
+import ScheduledSession from './scheduled-session';
+import CoachingSessions from './coaching-sessions';
 
 const BookingConfirmedPage = () => {
-  const router = useRouter();
   return (
     <ProductInfoHeader title="Booked Readings">
       <div className="flex flex-col items-center justify-center text-center mb-12">
@@ -24,55 +24,24 @@ const BookingConfirmedPage = () => {
 
       {/* Reading Session Card */}
       <div>
-        <h2 className="text-size-large md:text-size-heading font-medium mb-2">
-          Instant Readings Available Now <span className="text-sm">(1)</span>
-        </h2>
-        <ReadingSessionCard
-          title="AstroBlueprint"
-          type="reading"
-          label="Natal Reading"
-          duration="60 - 90 min"
-          actionText="Get Reading"
-          classNames="mb-6"
-          href="/products/flow/automated-reading"
-        />
-
-        <h2 className="text-size-large md:text-size-heading font-medium mb-2">
-          Scheduled Live Sessions<span className="text-sm">(1)</span>
-        </h2>
-        <ReadingSessionCard
-          title="Your Next 12 Months"
-          type="session"
-          label="Predictive"
-          duration="90 - 120 min"
-          actionText="View Session"
-          classNames="mb-8"
-          href="/products/flow/manual-reading"
-        />
-
-        <h2 className="text-size-large md:text-size-heading font-medium mb-2">
-          Scheduled Coaching Sessions<span className="text-sm">(1)</span>
-        </h2>
-        <ReadingSessionCard
-          title="Life Coaching"
-          type="session"
-          duration="60 - 90 min"
-          actionText="View Session"
-          classNames="mb-8"
-          href="/products/flow/coaching-sessions"
-        />
+        <InstantReading />
+        <ScheduledSession />
+        <CoachingSessions />
 
         <div className="space-y-4">
-          <Button
-            className="w-full bg-emerald-green border-emerald-green text-white"
-            variant={'outline'}
+          <Link
+            href="/products"
+            className="w-full h-12 md:h-15 bg-emerald-green hover:bg-emerald-green/95 border border-emerald-green text-white flex items-center justify-center"
           >
             Book More Readings
-          </Button>
+          </Link>
 
-          <Button className="w-full" variant={'outline'}>
+          <Link
+            href="/dashboard/booked-readings"
+            className="w-full h-12 md:h-15 hover:bg-grey-light-50 border flex items-center justify-center"
+          >
             Go to Dashboard
-          </Button>
+          </Link>
         </div>
       </div>
     </ProductInfoHeader>

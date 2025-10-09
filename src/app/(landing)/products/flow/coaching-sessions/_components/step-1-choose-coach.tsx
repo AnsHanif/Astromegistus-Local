@@ -8,7 +8,8 @@ import AstrologerProfileCard from '../../manual-reading/_components/astrologer-p
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import { User } from '@/services/api/user-api';
 import { useBooking } from '../../_components/booking-context';
-import { useCreateRandomCoachingBooking } from '@/hooks/mutation/booking-mutation/booking-mutation';
+import { useCoachingAstrologer } from '@/hooks/mutation/coaching-mutations';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Step1ChooseCoachProps {
   onNext: (choice: 'auto' | 'manual') => void;
@@ -17,16 +18,28 @@ interface Step1ChooseCoachProps {
 
 const Step1ChooseCoach: FC<Step1ChooseCoachProps> = ({ onNext, onPrev }) => {
   // Get booking context to store selected coach and initialize state
+  const searchParams = useSearchParams();
+  const productId = searchParams.get('productId') || '';
+  const itemId = searchParams.get('itemId') || '';
+
   const { data: bookingData, updateData } = useBooking();
-  
-  const [isAutoMatch, setIsAutoMatch] = useState(bookingData.selectionType === 'auto');
+  const route = useRouter();
+
+  const [isAutoMatch, setIsAutoMatch] = useState(
+    bookingData.selectionType === 'auto'
+  );
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedCoach, setSelectedCoach] = useState<User | null>(null); // Will be set in useEffect when coaches load
   const [validationError, setValidationError] = useState('');
-  
-  // Random coaching booking mutation for auto-match
-  const { mutateAsync: createRandomCoachingBooking, isPending: isCreatingRandomCoachingBooking } = useCreateRandomCoachingBooking();
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
+
+  // Coaching astrologer mutation for auto-match
+  const {
+    mutateAsync: getCoachingAstrologer,
+    isPending: isLoadingAstrologer,
+    error: astrologerError,
+  } = useCoachingAstrologer();
   // Fetch coaches from API with pagination
   const {
     data: coachesData,
@@ -37,6 +50,7 @@ const Step1ChooseCoach: FC<Step1ChooseCoachProps> = ({ onNext, onPrev }) => {
   } = useAstrologers('ASTROMEGISTUS_COACH', {
     limit: 6, // Show 6 coaches per page
     page: currentPage,
+    productId: productId || bookingData.productId,
   });
 
   const coaches = coachesData?.data?.data?.users || [];
@@ -45,10 +59,14 @@ const Step1ChooseCoach: FC<Step1ChooseCoachProps> = ({ onNext, onPrev }) => {
   // Restore selected coach from context when coaches load
   useEffect(() => {
     if (coaches.length > 0 && bookingData.selectedProvider) {
-      const savedCoach = coaches.find(coach => coach.id === bookingData.selectedProvider);
+      const savedCoach = coaches.find(
+        (coach) => coach.id === bookingData.selectedProvider
+      );
       if (savedCoach) {
         setSelectedCoach(savedCoach);
-        const index = coaches.findIndex(coach => coach.id === bookingData.selectedProvider);
+        const index = coaches.findIndex(
+          (coach) => coach.id === bookingData.selectedProvider
+        );
         setSelectedIndex(index >= 0 ? index : null);
       }
     }
@@ -64,36 +82,63 @@ const Step1ChooseCoach: FC<Step1ChooseCoachProps> = ({ onNext, onPrev }) => {
 
     try {
       if (choice === 'auto') {
-        // Call random coaching booking API for auto-match
-        const randomCoachingBookingPayload = {
-          sessionId: bookingData.productId, // Using productId as sessionId for coaching
-        };
+        setIsLoadingRandom(true);
 
-        const response = await createRandomCoachingBooking(randomCoachingBookingPayload);
-        
-        // Store the auto-assigned coach details
-        updateData({
-          selectedProvider: response.data.providerId || null,
-          selectedProviderName: 'Auto-Assigned Coach',
-          selectionType: choice,
-          bookingId: response.data.id,
-          sessionTitle: 'Coaching Session',
-          sessionDescription: 'Live coaching session with auto-assigned coach',
-          status: 'confirmed',
-        });
+        console.log(
+          'Auto-match selected, calling coaching astrologer endpoint for session:',
+          bookingData.productId
+        );
+
+        // Call the coaching astrologer API for auto-match
+        const response = await getCoachingAstrologer(bookingData.productId);
+        console.log('response data are', response);
+        if (response.coach) {
+          // Store the auto-assigned coach details
+          updateData({
+            selectedProvider: response.coach?.id,
+            selectedProviderName: response.coach?.name,
+            selectionType: choice,
+            productId: productId,
+            itemId: itemId,
+          });
+        } else if (response.data?.data?.users?.length > 0) {
+          // API returned list of coaches, randomly select one
+          const fetchedCoaches = response.data.data.users;
+          const randomIndex = Math.floor(Math.random() * fetchedCoaches.length);
+          const randomCoach = fetchedCoaches[randomIndex];
+
+          updateData({
+            selectedProvider: randomCoach.id,
+            selectedProviderName: randomCoach.name,
+            selectionType: choice,
+            productId: productId,
+            itemId: itemId,
+          });
+        } else {
+          setValidationError(
+            'No coaches available for auto-match. Please try manual selection.'
+          );
+          setIsLoadingRandom(false);
+          return;
+        }
+
+        setIsLoadingRandom(false);
       } else {
         // Manual selection - store selected coach in booking context
         updateData({
           selectedProvider: selectedCoach!.id,
           selectedProviderName: selectedCoach!.name,
           selectionType: choice,
+          productId: productId,
+          itemId: itemId,
         });
       }
 
-      onNext(choice);
+      onNext('manual');
     } catch (error) {
-      console.error('Error creating coaching booking:', error);
-      setValidationError('Failed to create coaching booking. Please try again.');
+      console.error('Error selecting coach:', error);
+      setValidationError('Failed to select coach. Please try again.');
+      setIsLoadingRandom(false);
     }
   };
 
@@ -226,22 +271,22 @@ const Step1ChooseCoach: FC<Step1ChooseCoachProps> = ({ onNext, onPrev }) => {
       </div>
 
       <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-        {onPrev && (
-          <Button
-            onClick={onPrev}
-            variant={'outline'}
-            className="border-black h-12 hover:bg-grey-light-50 md:max-w-[10rem] w-full px-2"
-          >
-            Back
-          </Button>
-        )}
+        {/* {onPrev && ( */}
+        <Button
+          onClick={() => route.back()}
+          variant={'outline'}
+          className="border-black h-12 hover:bg-grey-light-50 md:max-w-[10rem] w-full px-2"
+        >
+          Back
+        </Button>
+        {/* // )} */}
         <Button
           onClick={() => handleNext(isAutoMatch ? 'auto' : 'manual')}
           variant={'outline'}
           className="bg-emerald-green h-12 hover:bg-emerald-green/90 md:max-w-[10rem] w-full px-2 text-white"
-          disabled={isCreatingRandomCoachingBooking}
+          disabled={isLoadingRandom}
         >
-          {isCreatingRandomCoachingBooking ? <SpinnerLoader /> : 'Next'}
+          {isLoadingRandom ? <SpinnerLoader /> : 'Next'}
         </Button>
       </div>
     </section>

@@ -8,6 +8,7 @@ interface SettingsModeLayoutProps {
   subheading: string;
   children: ReactNode;
   classNames?: string;
+  onBack?: () => void;
 }
 
 const SettingsModeLayout: FC<SettingsModeLayoutProps> = ({
@@ -15,8 +16,17 @@ const SettingsModeLayout: FC<SettingsModeLayoutProps> = ({
   subheading,
   children,
   classNames = '',
+  onBack,
 }) => {
   const router = useRouter();
+
+  const handleBack = () => {
+    if (onBack) {
+      onBack();
+    } else {
+      router.back();
+    }
+  };
   return (
     <div
       className={`min-h-screen px-2 sm:px-8 py-8 flex flex-col ${classNames}`}
@@ -25,7 +35,7 @@ const SettingsModeLayout: FC<SettingsModeLayoutProps> = ({
       <div className="flex items-center mb-2 -ml-1 md:-ml-2">
         <ArrowLeft
           className="h-6 w-6 md:h-8 md:w-8 mr-2 cursor-pointer"
-          onClick={() => router.back()}
+          onClick={handleBack}
         />
         <h1 className="text-size-large md:text-size-heading font-bold">
           {heading}

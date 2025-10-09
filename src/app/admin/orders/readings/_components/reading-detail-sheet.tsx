@@ -51,22 +51,22 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
           <Eye className="h-4 w-4" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[800px] sm:max-w-[800px] bg-emerald-green border-white/20 p-6">
+      <SheetContent className="w-full sm:w-[600px] lg:w-[800px] sm:max-w-[90vw] lg:max-w-[800px] bg-emerald-green border-white/20 p-4 sm:p-6 overflow-y-auto">
         <SheetHeader className="pb-4">
-          <SheetTitle className="text-white text-xl">
+          <SheetTitle className="text-white text-lg sm:text-xl">
             Reading Order Details
           </SheetTitle>
         </SheetHeader>
-        <ScrollArea className="h-[calc(100vh-120px)] pr-2">
-          <div className="space-y-8 pr-4 pb-6">
+        <ScrollArea className="h-[calc(100vh-80px)] sm:h-[calc(100vh-120px)] pr-2">
+          <div className="space-y-4 sm:space-y-8 pr-2 sm:pr-4 pb-4 sm:pb-6">
             {/* Customer Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-base sm:text-lg font-semibold text-white">
                 Customer Information
               </h3>
               <div className="grid grid-cols-1 gap-4">
-                <div className="flex items-center space-x-4 p-6 bg-white/5 rounded-lg">
-                  <div className="w-12 h-12 rounded-full border-2 border-white/30 overflow-hidden">
+                <div className="flex items-center space-x-3 sm:space-x-4 p-4 sm:p-6 bg-white/5 rounded-lg">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white/30 overflow-hidden flex-shrink-0">
                     {reading.user.profilePic ? (
                       <img
                         src={reading.user.profilePic}
@@ -79,11 +79,11 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
                       </div>
                     )}
                   </div>
-                  <div>
-                    <div className="font-medium text-white">
+                  <div className="min-w-0 flex-1">
+                    <div className="font-medium text-white text-sm sm:text-base">
                       {reading.user.name}
                     </div>
-                    <div className="text-sm text-white/70">
+                    <div className="text-xs sm:text-sm text-white/70 truncate">
                       {reading.user.email}
                     </div>
                   </div>
@@ -93,13 +93,13 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
 
             {/* Product Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-base sm:text-lg font-semibold text-white">
                 Product Information
               </h3>
-              <div className="p-6 bg-white/5 rounded-lg space-y-4">
+              <div className="p-4 sm:p-6 bg-white/5 rounded-lg space-y-3 sm:space-y-4">
                 <div>
-                  <label className="text-sm text-white/70">Product Name</label>
-                  <div className="text-white font-medium">
+                  <label className="text-xs sm:text-sm text-white/70">Product Name</label>
+                  <div className="text-white font-medium text-sm sm:text-base">
                     {reading.product.name}
                   </div>
                 </div>
@@ -131,12 +131,12 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
 
             {/* Order Information */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-white">
+              <h3 className="text-base sm:text-lg font-semibold text-white">
                 Order Information
               </h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-5 bg-white/5 rounded-lg">
-                  <label className="text-sm text-white/70">Type</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                <div className="p-3 sm:p-5 bg-white/5 rounded-lg">
+                  <label className="text-xs sm:text-sm text-white/70">Type</label>
                   <div className="mt-1">
                     <span
                       className={`px-2 py-1 rounded-full text-xs font-medium border ${getTypeColor(reading.type)}`}
@@ -198,7 +198,7 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
             {/* Persons Information */}
             {reading.persons && reading.persons.length > 0 && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-base sm:text-lg font-semibold text-white">
                   Person Details
                 </h3>
                 {reading.persons.map((person: any) => (
@@ -212,7 +212,7 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
                         {person.fullName}
                       </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="text-sm text-white/70">
                           Date of Birth
@@ -246,12 +246,12 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
             {/* Provider Information */}
             {reading.provider && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">
+                <h3 className="text-base sm:text-lg font-semibold text-white">
                   Assigned Provider
                 </h3>
-                <div className="p-6 bg-white/5 rounded-lg">
-                  <div className="flex items-center space-x-4">
-                    <div className="w-12 h-12 rounded-full border-2 border-white/30 overflow-hidden">
+                <div className="p-4 sm:p-6 bg-white/5 rounded-lg">
+                  <div className="flex items-center space-x-3 sm:space-x-4">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 border-white/30 overflow-hidden flex-shrink-0">
                       {reading.provider.profilePic ? (
                         <img
                           src={reading.provider.profilePic}
@@ -264,11 +264,11 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
                         </div>
                       )}
                     </div>
-                    <div>
-                      <div className="text-white font-medium">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-white font-medium text-sm sm:text-base">
                         {reading.provider.name}
                       </div>
-                      <div className="text-sm text-white/70">
+                      <div className="text-xs sm:text-sm text-white/70 truncate">
                         {reading.provider.email}
                       </div>
                       <div className="text-xs text-white/50 capitalize">
@@ -283,8 +283,8 @@ export function ReadingDetailSheet({ reading }: ReadingDetailSheetProps) {
             {/* Notes */}
             {reading.notes && (
               <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-white">Notes</h3>
-                <div className="p-5 bg-white/5 rounded-lg">
+                <h3 className="text-base sm:text-lg font-semibold text-white">Notes</h3>
+                <div className="p-4 sm:p-5 bg-white/5 rounded-lg">
                   <div className="text-white/90">{reading.notes}</div>
                 </div>
               </div>

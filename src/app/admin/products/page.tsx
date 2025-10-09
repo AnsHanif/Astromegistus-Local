@@ -6,7 +6,8 @@ import SearchBar from '@/components/common/search-bar/search-bar';
 import { CustomSelect } from '@/components/common/custom-select/custom-select';
 import ConfirmationModal from '@/components/common/confirmation-modal';
 import ProductFormModal from '@/components/common/product-form-modal';
-import { Plus, Edit, Trash2, Package, Loader2, X } from 'lucide-react';
+import ProductSectionsModal from '@/components/common/product-sections-modal';
+import { Plus, Edit, Trash2, Package, Loader2, X, FileText } from 'lucide-react';
 import {
   useCreateProduct,
   useCreateProductWithImage,
@@ -17,6 +18,7 @@ import {
   useDisableProduct,
 } from '@/hooks/mutation/admin-mutation/admin-mutations';
 import { useAdminProducts as useAdminProductsQuery } from '@/hooks/query/admin-queries';
+import { useUpdateProductSections, useGetProductSections } from '@/hooks/mutation/product-sections-mutations';
 import { s3ImageAPI } from '@/services/api/s3-image-api';
 
 export default function ProductsPage() {
@@ -24,10 +26,14 @@ export default function ProductsPage() {
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('All');
   const [filterType, setFilterType] = useState('All');
+  const [page, setPage] = useState(1);
+  const limit = 6;
   const [isAddProductModalOpen, setIsAddProductModalOpen] = useState(false);
   const [isEditProductModalOpen, setIsEditProductModalOpen] = useState(false);
   const [isDeleteProductModalOpen, setIsDeleteProductModalOpen] =
     useState(false);
+  const [isSectionsModalOpen, setIsSectionsModalOpen] = useState(false);
+  const [selectedProductForSections, setSelectedProductForSections] = useState<string | null>(null);
   const [editingProduct, setEditingProduct] = useState<{
     id: string;
     name: string;
@@ -59,6 +65,7 @@ export default function ProductsPage() {
     name: string;
   } | null>(null);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [togglingProductId, setTogglingProductId] = useState<string | null>(null);
 
   // Debounce search term
   useEffect(() => {
@@ -69,8 +76,15 @@ export default function ProductsPage() {
     return () => clearTimeout(timer);
   }, [searchTerm]);
 
+  // Reset page when filters change
+  useEffect(() => {
+    setPage(1);
+  }, [filterStatus, filterType, debouncedSearchTerm]);
+
   // React Query hooks
   const queryParams = {
+    page,
+    limit,
     search: debouncedSearchTerm,
     status:
       filterStatus === 'All'
@@ -95,6 +109,8 @@ export default function ProductsPage() {
     isLoading,
     error,
   } = useAdminProductsQuery({
+    page,
+    limit,
     search: debouncedSearchTerm,
     status:
       filterStatus === 'All'
@@ -123,8 +139,26 @@ export default function ProductsPage() {
   const deleteProductMutation = useDeleteProduct();
   const enableProductMutation = useEnableProduct();
   const disableProductMutation = useDisableProduct();
+  const updateProductSectionsMutation = useUpdateProductSections();
+
+  // Get product sections data for the selected product
+  const {
+    data: productSectionsData,
+    isLoading: sectionsLoading,
+    error: sectionsError
+  } = useGetProductSections(selectedProductForSections || '');
 
   // Extract products array from response, handle different response structures
+  const rawProducts = Array.isArray(productsResponse)
+    ? productsResponse
+    : (productsResponse as any)?.data?.data?.products &&
+        Array.isArray((productsResponse as any).data.data.products)
+      ? (productsResponse as any).data.data.products
+      : [];
+
+  const pagination = (productsResponse as any)?.data?.data?.pagination;
+
+  // Transform products to ensure pricing fields are properly mapped
   const products: {
     id: string;
     name: string;
@@ -150,12 +184,26 @@ export default function ProductsPage() {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
-  }[] = Array.isArray(productsResponse)
-    ? productsResponse
-    : (productsResponse as any)?.data?.data?.products &&
-        Array.isArray((productsResponse as any).data.data.products)
-      ? (productsResponse as any).data.data.products
-      : [];
+  }[] = rawProducts.map((product: any) => {
+    // Extract prices from pricing object if it exists
+    const automatedPrice = typeof product.automatedPrice === 'number'
+      ? product.automatedPrice
+      : (typeof product.pricing?.automated === 'object'
+          ? product.pricing.automated.originalPrice
+          : product.pricing?.automated);
+
+    const livePrice = typeof product.livePrice === 'number'
+      ? product.livePrice
+      : (typeof product.pricing?.live === 'object'
+          ? product.pricing.live.originalPrice
+          : product.pricing?.live ?? 0);
+
+    return {
+      ...product,
+      automatedPrice,
+      livePrice,
+    };
+  });
 
   console.log('Products response:', productsResponse);
   console.log('Processed products array:', products);
@@ -405,11 +453,37 @@ export default function ProductsPage() {
   };
 
   const handleEnableProduct = (product: { id: string; name: string }) => {
-    enableProductMutation.mutate(product.id);
+    setTogglingProductId(product.id);
+    enableProductMutation.mutate(product.id, {
+      onSettled: () => setTogglingProductId(null)
+    });
   };
 
   const handleDisableProduct = (product: { id: string; name: string }) => {
-    disableProductMutation.mutate(product.id);
+    setTogglingProductId(product.id);
+    disableProductMutation.mutate(product.id, {
+      onSettled: () => setTogglingProductId(null)
+    });
+  };
+
+  const handleManageSections = (productId: string) => {
+    setSelectedProductForSections(productId);
+    setIsSectionsModalOpen(true);
+  };
+
+  const handleSectionsSubmit = async (sections: any) => {
+    if (!selectedProductForSections) return;
+
+    try {
+      await updateProductSectionsMutation.mutateAsync({
+        productId: selectedProductForSections,
+        sections,
+      });
+      setIsSectionsModalOpen(false);
+      setSelectedProductForSections(null);
+    } catch (error) {
+      console.error('Error saving sections:', error);
+    }
   };
 
   const handleDeleteProductImage = async (
@@ -432,39 +506,39 @@ export default function ProductsPage() {
   };
   console.log('filteredProducts', filteredProducts);
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white">Product Management</h1>
-          <p className="text-white/70 mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">Product Management</h1>
+          <p className="text-white/70 mt-2 text-sm sm:text-base">
             Manage astrology readings and services
           </p>
         </div>
-        <div className="flex gap-3">
+        <div className="flex gap-3 w-full sm:w-auto">
           <Button
-            className="bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black"
+            className="bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark hover:from-golden-glow-dark hover:via-golden-glow hover:to-pink-shade text-black font-semibold px-4 sm:px-6 py-2 sm:py-3 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105 w-full sm:w-auto"
             onClick={() => setIsAddProductModalOpen(true)}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
+            <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+            <span className="text-sm sm:text-base">Add Product</span>
           </Button>
         </div>
       </div>
 
       {/* Filters */}
       <Card className="bg-emerald-green/10 border-white/10">
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <div className="flex-1">
               <SearchBar
                 placeholder="Search products..."
                 value={searchTerm}
                 onSearch={setSearchTerm}
-                className="[&_input]:bg-white/5 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/50 [&_svg]:text-white/50 [&_input]:focus:border-white/40 [&_input]:focus:ring-0 [&_input]:focus:outline-none"
+                className="[&_input]:bg-white/5 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/50 [&_svg]:text-white/50 [&_input]:focus:border-white/40 [&_input]:focus:ring-0 [&_input]:focus:outline-none [&_input]:rounded-lg [&_input]:h-10 sm:[&_input]:h-12"
               />
             </div>
-            <div className="flex gap-3">
-              <CustomSelect
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+              {/* <CustomSelect
                 options={[
                   { label: 'All Status', value: 'All' },
                   { label: 'Active', value: 'Active' },
@@ -473,11 +547,11 @@ export default function ProductsPage() {
                 selectedValue={filterStatus}
                 onSelect={setFilterStatus}
                 placeholder="All Status"
-                variant="default"
-                triggerClassName="bg-white/5 border-white/20 text-white hover:bg-white/10 focus:border-white/40 focus:ring-0 focus:outline-none h-10 min-h-[40px]"
-                contentClassName="bg-emerald-green/20 border-white/20 shadow-lg"
+                variant="large"
+                triggerClassName="bg-white/5 border-white/20 text-white hover:bg-white/10 focus:border-white/40 focus:ring-0 focus:outline-none h-10 sm:h-12 min-h-[40px] sm:min-h-[48px] rounded-lg min-w-[120px] sm:min-w-[140px] w-full sm:w-auto"
+                contentClassName="bg-emerald-green border-white/20 shadow-lg rounded-lg"
                 itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
-              />
+              /> */}
               <CustomSelect
                 options={[
                   { label: 'All Types', value: 'All' },
@@ -499,9 +573,10 @@ export default function ProductsPage() {
                 selectedValue={filterType}
                 onSelect={setFilterType}
                 placeholder="All Types"
-                variant="default"
-                triggerClassName="bg-white/5 border-white/20 text-white hover:bg-white/10 focus:border-white/40 focus:ring-0 focus:outline-none h-10 min-h-[40px]"
-                contentClassName="bg-emerald-green/20 border-white/20 shadow-lg"
+                variant="large"
+                maxHeight="max-h-56 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]"
+                triggerClassName="bg-white/5 border-white/20 text-white hover:bg-white/10 focus:border-white/40 focus:ring-0 focus:outline-none h-10 sm:h-12 min-h-[40px] sm:min-h-[48px] rounded-lg min-w-[120px] sm:min-w-[140px] w-full sm:w-auto"
+                contentClassName="bg-emerald-green border-white/20 shadow-lg rounded-lg"
                 itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
               />
             </div>
@@ -524,7 +599,7 @@ export default function ProductsPage() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {filteredProducts.map(
             (product) => (
               console.log('product', product.imageUrl),
@@ -551,21 +626,7 @@ export default function ProductsPage() {
                             }
                           }}
                         />
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 h-6 w-6 p-0 rounded-full opacity-0 hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleDeleteProductImage(
-                              product.id,
-                              product.imageUrl
-                            );
-                          }}
-                          title="Delete product image"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
+
                       </>
                     ) : null}
                     <div
@@ -600,27 +661,28 @@ export default function ProductsPage() {
                         <CardTitle className="text-white text-lg mb-3 line-clamp-2 leading-tight">
                           {product.name}
                         </CardTitle>
-                        <div className="flex gap-2 flex-wrap">
-                          <div className="flex flex-wrap gap-1">
-                            {product.categories.map((category, index) => (
-                              <span
-                                key={index}
-                                className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(
-                                  category
-                                )}`}
-                              >
-                                {category.replace('_', ' ')}
-                              </span>
-                            ))}
+                        
+                        {/* Categories and Product Type Section */}
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1 min-w-0 mr-3">
+                            <div className="text-xs text-white/50 mb-1">Categories</div>
+                            <div className="flex flex-wrap gap-1">
+                              {product.categories.map((category, index) => (
+                                <span
+                                  key={index}
+                                  className={`px-2 py-1 rounded-full text-xs font-medium border ${getCategoryColor(
+                                    category
+                                  )}`}
+                                >
+                                  {category.replace('_', ' ')}
+                                </span>
+                              ))}
+                            </div>
                           </div>
-                          {getProductTypePill(product.productType)}
-                          <span
-                            className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
-                              product.isActive
-                            )}`}
-                          >
-                            {product.isActive ? 'Active' : 'Inactive'}
-                          </span>
+                          <div className="flex-shrink-0">
+                            <div className="text-xs text-white/50 mb-1">Type</div>
+                            {getProductTypePill(product.productType)}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -679,16 +741,26 @@ export default function ProductsPage() {
                         <Edit className="h-3 w-3 mr-1" />
                         Edit
                       </Button>
-                      {product.isActive ? (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="border border-blue-500/30 text-blue-400 hover:bg-blue-500/10 bg-transparent h-8 px-3"
+                        onClick={() => handleManageSections(product.id)}
+                        title="Manage Detail Page Sections"
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Detail Page
+                      </Button>
+                      {/* {product.isActive ? (
                         <Button
                           variant="ghost"
                           size="sm"
                           className="border border-orange-500/30 text-orange-400 hover:bg-orange-500/10 bg-transparent h-8 px-2"
                           onClick={() => handleDisableProduct(product)}
-                          disabled={disableProductMutation.isPending}
+                          disabled={togglingProductId === product.id}
                           title="Disable Product"
                         >
-                          {disableProductMutation.isPending ? (
+                          {togglingProductId === product.id ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <span className="text-xs">Disable</span>
@@ -700,16 +772,16 @@ export default function ProductsPage() {
                           size="sm"
                           className="border border-green-500/30 text-green-400 hover:bg-green-500/10 bg-transparent h-8 px-2"
                           onClick={() => handleEnableProduct(product)}
-                          disabled={enableProductMutation.isPending}
+                          disabled={togglingProductId === product.id}
                           title="Enable Product"
                         >
-                          {enableProductMutation.isPending ? (
+                          {togglingProductId === product.id ? (
                             <Loader2 className="h-3 w-3 animate-spin" />
                           ) : (
                             <span className="text-xs">Enable</span>
                           )}
                         </Button>
-                      )}
+                      )} */}
                       <Button
                         variant="ghost"
                         size="sm"
@@ -744,6 +816,86 @@ export default function ProductsPage() {
               </p>
             </div>
           </CardContent>
+        </Card>
+      )}
+
+      {/* Pagination */}
+      {pagination && pagination.pages > 1 && (
+        <Card className="bg-emerald-green/10 border-white/10">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-white/10 bg-gradient-to-r from-emerald-green/5 to-emerald-green/10">
+            <div className="text-xs sm:text-sm text-white/70 font-medium text-center sm:text-left">
+              Showing{' '}
+              <span className="text-white font-semibold">
+                {(page - 1) * limit + 1}
+              </span>{' '}
+              to{' '}
+              <span className="text-white font-semibold">
+                {Math.min(page * limit, pagination.total)}
+              </span>{' '}
+              of{' '}
+              <span className="text-white font-semibold">{pagination.total}</span>{' '}
+              results
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page - 1)}
+                disabled={page <= 1}
+                className="!h-8 sm:!h-10 bg-white/5 border-white/20 text-white hover:bg-white/15 hover:border-white/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-2 sm:px-4 py-1 sm:py-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
+              >
+                <span className="hidden sm:inline">Previous</span>
+                <span className="sm:hidden">Prev</span>
+              </Button>
+
+              <div className="hidden sm:flex items-center gap-1 mx-2">
+                {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                  let pageNumber;
+                  if (pagination.pages <= 5) {
+                    pageNumber = i + 1;
+                  } else if (page <= 3) {
+                    pageNumber = i + 1;
+                  } else if (page >= pagination.pages - 2) {
+                    pageNumber = pagination.pages - 4 + i;
+                  } else {
+                    pageNumber = page - 2 + i;
+                  }
+
+                  return (
+                    <Button
+                      key={pageNumber}
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setPage(pageNumber)}
+                      className={
+                        page === pageNumber
+                          ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold shadow-lg border border-emerald-400/50 rounded-lg min-w-[40px] h-10 hover:from-emerald-600 hover:to-emerald-700'
+                          : 'bg-white/5 border border-white/20 text-white hover:bg-white/15 hover:border-white/30 rounded-lg min-w-[40px] h-10 transition-all duration-200'
+                      }
+                    >
+                      {pageNumber}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              {/* Mobile page indicator */}
+              <div className="sm:hidden mx-2 text-xs text-white/70">
+                {page} / {pagination.pages}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(page + 1)}
+                disabled={page >= pagination.pages}
+                className="!h-8 sm:!h-10 bg-white/5 border-white/20 text-white hover:bg-white/15 hover:border-white/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-2 sm:px-4 py-1 sm:py-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
+              >
+                <span className="hidden sm:inline">Next</span>
+                <span className="sm:hidden">Next</span>
+              </Button>
+            </div>
+          </div>
         </Card>
       )}
 
@@ -796,6 +948,19 @@ export default function ProductsPage() {
         isLoading={deleteProductMutation.isPending}
         variant="delete"
         itemName={productToDelete?.name}
+      />
+
+      {/* Product Sections Modal */}
+      <ProductSectionsModal
+        isOpen={isSectionsModalOpen}
+        onClose={() => {
+          setIsSectionsModalOpen(false);
+          setSelectedProductForSections(null);
+        }}
+        productId={selectedProductForSections || ''}
+        onSubmit={handleSectionsSubmit}
+        initialData={productSectionsData}
+        isLoading={updateProductSectionsMutation.isPending || sectionsLoading}
       />
     </div>
   );

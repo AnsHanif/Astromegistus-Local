@@ -90,7 +90,12 @@ export default function CoachingFormModal({
     if (isOpen) {
       if (mode === 'edit' && initialData) {
         setFormData(initialData);
+        setPendingImageFile(null);
       } else {
+        // Clean up any existing blob URLs
+        if (formData.imageUrl && formData.imageUrl.startsWith('blob:')) {
+          URL.revokeObjectURL(formData.imageUrl);
+        }
         setFormData({
           title: '',
           description: '',
@@ -124,6 +129,12 @@ export default function CoachingFormModal({
           ],
           imageUrl: '',
         });
+        setPendingImageFile(null);
+      }
+    } else {
+      // Clean up blob URLs when modal closes
+      if (formData.imageUrl && formData.imageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(formData.imageUrl);
       }
     }
   }, [isOpen, mode, initialData]);
@@ -233,6 +244,7 @@ export default function CoachingFormModal({
         <div className="space-y-2">
           <label className="text-sm font-medium text-white/90">Image</label>
           <ImageUpload
+            key={`${mode}-${isOpen ? 'open' : 'closed'}`}
             currentImageUrl={formData.imageUrl}
             onImageUpload={(imageUrl) =>
               handleInputChange('imageUrl', imageUrl)
@@ -244,35 +256,50 @@ export default function CoachingFormModal({
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/90">
-              Price ($)
-            </label>
-            <Input
-              type="number"
-              value={formData.price || ''}
-              onChange={(e) =>
-                handleInputChange('price', parseFloat(e.target.value) || 0)
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-white/90">
+            Price ($)
+          </label>
+          <Input
+            type="text"
+            inputMode="decimal"
+            value={formData.price || ''}
+            onChange={(e) => {
+              const value = e.target.value;
+              if (value === '') {
+                handleInputChange('price', 0);
+              } else if (/^\d*\.?\d*$/.test(value)) {
+                handleInputChange('price', parseFloat(value) || 0);
               }
-              placeholder="Enter price"
-              min="0"
-              step="0.01"
-              className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
-            />
-          </div>
+            }}
+            placeholder="Enter price"
+            className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
+          />
+        </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-white/90">
-              Duration
-            </label>
-            <Input
-              value={formData.duration}
-              onChange={(e) => handleInputChange('duration', e.target.value)}
-              placeholder="e.g., 60 + 30 min"
-              className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
-            />
-          </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-white/90">Duration</label>
+          <CustomSelect
+            options={[
+              { label: '15-30 min', value: '15-30 min' },
+              { label: '30-45 min', value: '30-45 min' },
+              { label: '30-60 min', value: '30-60 min' },
+              { label: '45-60 min', value: '45-60 min' },
+              { label: '60-75 min', value: '60-75 min' },
+              { label: '60-90 min', value: '60-90 min' },
+              { label: '75-90 min', value: '75-90 min' },
+              { label: '90-120 min', value: '90-120 min' },
+            ]}
+            selectedValue={formData.duration}
+            onSelect={(value) => {
+              handleInputChange('duration', value);
+            }}
+            placeholder="Select duration"
+            variant="default"
+            triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:ring-0 focus:outline-none"
+            contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000] [&_.selected-item]:bg-white/20 [&_.selected-item]:text-white [&_.selected-item]:font-normal"
+            itemClassName="text-white hover:bg-white/10 focus:bg-white/10 [&[data-state=checked]]:bg-white/20 [&[data-state=checked]]:text-white [&[data-state=checked]]:font-normal"
+          />
         </div>
 
         <div className="space-y-2">
@@ -287,7 +314,7 @@ export default function CoachingFormModal({
             onSelect={(value) => handleInputChange('category', value)}
             placeholder="Select category"
             triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:border-golden-glow focus:ring-0 focus:outline-none"
-            contentClassName="bg-emerald-green/40 border-white/30 shadow-2xl z-[10000]"
+            contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000]"
             itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
           />
         </div>
@@ -364,28 +391,32 @@ export default function CoachingFormModal({
                 </div>
                 <div className="grid grid-cols-2 gap-3 mb-3">
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={pkg.price || ''}
-                    onChange={(e) =>
-                      updatePackage(
-                        index,
-                        'price',
-                        parseFloat(e.target.value) || 0
-                      )
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        updatePackage(index, 'price', 0);
+                      } else if (/^\d*\.?\d*$/.test(value)) {
+                        updatePackage(index, 'price', parseFloat(value) || 0);
+                      }
+                    }}
                     placeholder="Price"
                     className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
                   />
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="decimal"
                     value={pkg.originalPrice || ''}
-                    onChange={(e) =>
-                      updatePackage(
-                        index,
-                        'originalPrice',
-                        parseFloat(e.target.value) || undefined
-                      )
-                    }
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (value === '') {
+                        updatePackage(index, 'originalPrice', undefined);
+                      } else if (/^\d*\.?\d*$/.test(value)) {
+                        updatePackage(index, 'originalPrice', parseFloat(value) || undefined);
+                      }
+                    }}
                     placeholder="Original price (optional)"
                     className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
                   />
@@ -433,7 +464,7 @@ export default function CoachingFormModal({
               }
               placeholder="Select status"
               triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:border-golden-glow focus:ring-0 focus:outline-none"
-              contentClassName="bg-emerald-green/40 border-white/30 shadow-2xl z-[10000]"
+              contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000]"
               itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
             />
           </div>

@@ -45,17 +45,17 @@ export function OrdersFilters(props: OrdersFiltersProps) {
 
   return (
     <Card className="bg-emerald-green/10 border-white/10">
-      <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-4">
+      <CardContent className="p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1">
             <SearchBar
               placeholder={searchPlaceholder}
               value={searchTerm}
               onSearch={onSearchChange}
-              className="[&_input]:bg-white/5 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/50 [&_svg]:text-white/50 [&_input]:focus:border-white/40 [&_input]:focus:ring-0 [&_input]:focus:outline-none [&_input]:rounded-lg [&_input]:h-12"
+              className="[&_input]:bg-white/5 [&_input]:border-white/20 [&_input]:text-white [&_input]:placeholder:text-white/50 [&_svg]:text-white/50 [&_input]:focus:border-white/40 [&_input]:focus:ring-0 [&_input]:focus:outline-none [&_input]:rounded-lg [&_input]:h-10 sm:[&_input]:h-12"
             />
           </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
             <CustomSelect
               options={STATUS_FILTER_OPTIONS}
               selectedValue={filterStatus}

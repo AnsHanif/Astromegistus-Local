@@ -2,16 +2,24 @@
 
 import React from 'react';
 
-type FullScreenLoaderProps = { size?: number; loading?: boolean };
+type FullScreenLoaderProps = {
+  size?: number;
+  loading?: boolean;
+  bgColor?: string;
+};
 
 const FullScreenLoader = ({
   size = 90,
   loading = true,
+  bgColor = 'rgba(0,0,0,0.3)',
 }: FullScreenLoaderProps) => {
   if (!loading) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black/30 z-50">
+    <div
+      className="fixed inset-0 flex items-center justify-center z-[9999]"
+      style={{ backgroundColor: bgColor }}
+    >
       <div
         aria-label="Loading Spinner"
         data-testid="spinner-loader"

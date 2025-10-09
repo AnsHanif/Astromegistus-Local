@@ -54,12 +54,12 @@ const WhatsIncluded: React.FC<WhatsIncludedProps> = ({
             <div key={index}>
               <div className="flex gap-3">
                 {item?.icon}
-                <h4 className="font-medium text-size-large md:text-size-heading mb-1">
+                <h4 className="text-base font-bold mb-1">
                   {item.title}
                 </h4>
               </div>
               {item.description && (
-                <p className="text-sm">{item.description}</p>
+                <p className="text-base">{item.description}</p>
               )}
             </div>
           ))}

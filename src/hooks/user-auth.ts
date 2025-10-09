@@ -8,6 +8,7 @@ import { AppDispatch } from '@/store/store';
 import { setCurrentUser, clearCurrentUser } from '@/store/slices/user-slice';
 import axiosInstance from '@/services/axios';
 import Cookies from 'js-cookie';
+import { useSnackbar } from 'notistack';
 
 const fetchUser = async () => {
   const token = Cookies.get('astro-tk');
@@ -20,6 +21,7 @@ const fetchUser = async () => {
 };
 
 export const useAuth = () => {
+  const { enqueueSnackbar } = useSnackbar();
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -41,22 +43,48 @@ export const useAuth = () => {
       dispatch(clearCurrentUser());
       Cookies.remove('astro-tk');
       localStorage.removeItem('role');
+      localStorage.removeItem('cart');
+      localStorage.removeItem('final-cart');
       queryClient.clear();
       router.push('/login');
       return;
     }
 
     if (data?.user) {
-      let resolvedRole = 'GUEST';
-      if (
-        Array.isArray(data?.user?.subscriptions) &&
-        data?.user?.subscriptions?.length > 0
+      let resolvedRole: string = 'GUEST';
+
+      if (data.user.role === 'ADMIN') {
+        resolvedRole = 'ADMIN';
+      } else if (data.user.role === 'PAID') {
+        if (
+          Array.isArray(data?.user?.subscriptions) &&
+          data?.user?.subscriptions?.length > 0
+        ) {
+          const planName = data?.user.subscriptions[0]?.plan?.name;
+          if (planName === 'CLASSIC') resolvedRole = 'CLASSIC';
+          if (planName === 'PREMIER') resolvedRole = 'PREMIER';
+        } else {
+          resolvedRole = 'GUEST';
+        }
+      } else if (
+        data.user.role === 'ASTROMEGISTUS' ||
+        data.user.role === 'ASTROMEGISTUS_COACH'
       ) {
-        const planName = data?.user.subscriptions[0]?.plan?.name;
-        if (planName === 'CLASSIC') resolvedRole = 'CLASSIC';
-        if (planName === 'PREMIER') resolvedRole = 'PREMIER';
-      } else {
+        resolvedRole = data.user.role;
+      } else if (data.user.role === 'GUEST') {
         resolvedRole = 'GUEST';
+      } else {
+        enqueueSnackbar('Invalid role detected. Please contact support.', {
+          variant: 'error',
+        });
+        dispatch(clearCurrentUser());
+        Cookies.remove('astro-tk');
+        localStorage.removeItem('role');
+        localStorage.removeItem('cart');
+        localStorage.removeItem('final-cart');
+        queryClient.clear();
+        router.push('/login');
+        return;
       }
 
       localStorage.setItem('role', resolvedRole);

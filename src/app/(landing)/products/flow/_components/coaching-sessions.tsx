@@ -4,9 +4,22 @@ import React, { useEffect, useState } from 'react';
 import { useGetAllCoachingSessions } from '@/hooks/query/coaching-sessions-queries';
 import ProductCard from './product-card';
 import { Button } from '@/components/ui/button';
+import SectionLoader from '@/components/common/section-loader';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import { enqueueSnackbar } from 'notistack';
 
-const CoachesSession = () => {
+interface CoachesSessionProps {
+  search?: string;
+  filters?: {
+    category?: string;
+    productType?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    duration?: string;
+  };
+}
+
+const CoachesSession = ({ search = '', filters = {} }: CoachesSessionProps) => {
   const [cartItems, setCartItems] = useState<string[]>([]);
   const limit = 4; // Items per page
 
@@ -18,7 +31,7 @@ const CoachesSession = () => {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useGetAllCoachingSessions();
+  } = useGetAllCoachingSessions({ search, filters, limit });
 
   // Load cart items from localStorage on mount
   useEffect(() => {
@@ -41,16 +54,23 @@ const CoachesSession = () => {
 
     if (existingItemIndex > -1) {
       // Remove from cart
+      const removedItem = cart[existingItemIndex];
       cart.splice(existingItemIndex, 1);
       setCartItems((prev) => prev.filter((id) => id !== productId));
+
+      // Show toast for removal
+      enqueueSnackbar(`${removedItem.name} removed from cart`, {
+        variant: 'info',
+      });
     } else {
       // Add to cart
       const product = getProductById(productId);
+      console.log('product are : ', product);
       if (product) {
         const cartItem = {
           id: product.id,
           name: product.title, // Using 'title' from API response
-          price: product.price,
+          price: product.pricing?.discountedPrice,
           qty: 1,
           image: product.imageUrl || '/images/no-image.png',
           duration: product.duration || '30 + 60 minutes',
@@ -58,6 +78,11 @@ const CoachesSession = () => {
         };
         cart.push(cartItem);
         setCartItems((prev) => [...prev, productId]);
+
+        // Show toast for addition
+        enqueueSnackbar(`${product.title} added to cart`, {
+          variant: 'success',
+        });
       }
     }
 
@@ -78,29 +103,38 @@ const CoachesSession = () => {
     return null;
   };
 
-  const allSessions = data?.pages.flatMap((page) => page.sessions) || [];
+  const allSessions =
+    data?.pages
+      .flatMap((page) => page?.sessions || [])
+      .filter((session) => session && session.id) || [];
 
   return (
     <div className="space-y-8 py-6">
-      {isLoading && <SpinnerLoader />}
-      {/* Sessions Grid */}
-      <div className="grid grid-cols-1 place-items-center md:grid-cols-2 gap-4 md:gap-8 mx-auto">
-        {allSessions.map((session) => (
-          <ProductCard
-            key={session.id}
-            productId={session.id}
-            isInCart={cartItems.includes(session.id)}
-            onCartToggle={handleCartToggle}
-            image={session.imageUrl}
-            title={session.title}
-            description={session.description}
-            duration={session.duration}
-            buttonText="View Details"
-            href={`/products/${session.id}`}
-            tag={session.category}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <SectionLoader message="Loading coaching sessions..." />
+      ) : (
+        <>
+          {/* Sessions Grid */}
+          <div className="grid grid-cols-1 place-items-center md:grid-cols-2 gap-4 md:gap-8 mx-auto">
+            {allSessions.map((session) => (
+              <ProductCard
+                key={session.id}
+                productId={session.id}
+                isInCart={cartItems.includes(session.id)}
+                onCartToggle={handleCartToggle}
+                image={session.imageUrl}
+                title={session.title}
+                livePrice={session.pricing?.discountedPrice}
+                description={session.description}
+                duration={session.duration}
+                buttonText="View Details"
+                href={`/coaching/${session.id}`}
+                tag={session.category}
+              />
+            ))}
+          </div>
+        </>
+      )}
 
       {/* Load More Button */}
       {hasNextPage && (
@@ -123,7 +157,7 @@ const CoachesSession = () => {
       )}
 
       {/* Empty state */}
-      {allSessions.length === 0 && (
+      {!isLoading && allSessions.length === 0 && (
         <div className="text-center py-12">
           <p className="text-gray-500 text-lg">
             No coaching sessions available

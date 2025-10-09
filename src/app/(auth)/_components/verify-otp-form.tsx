@@ -140,7 +140,7 @@ export default function VerifyOtpform({ onBack, onSuccess }: Props) {
   return (
     <AuthForm
       heading="Verify OTP"
-      subheading="Enter 6-digit code send to your email"
+      subheading="Enter 6-digit code sent to your email"
       buttonText=""
       showBackButton={true}
       onBackClick={onBack}

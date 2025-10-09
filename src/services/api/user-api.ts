@@ -5,7 +5,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'GUEST' | 'PAID' | 'ASTROLOGER' | 'ADMIN';
+  role: 'GUEST' | 'PAID' | 'ASTROMEGISTUS' | 'ASTROMEGISTUS_COACH' | 'ADMIN';
   astrologerType?: 'COACHING';
   gender?: 'male' | 'female' | 'other';
   dateOfBirth?: string;
@@ -51,11 +51,12 @@ export interface UsersResponse {
 export interface UserQueryParams {
   page?: number;
   limit?: number;
-  role?: 'GUEST' | 'PAID' | 'ASTROLOGER' | 'ADMIN';
+  role?: 'GUEST' | 'PAID' | 'ASTROMEGISTUS' | 'ASTROMEGISTUS_COACH' | 'ADMIN';
   status?: boolean;
   search?: string;
   name?: string;
   type?: 'COACHING';
+  productId?: string;
 }
 
 export interface TimeSlotsResponse {
@@ -68,15 +69,15 @@ export interface TimeSlotsResponse {
 export const userAPI = {
   // Get users (public access - only shows active and verified users)
   getUsers: (params?: UserQueryParams) =>
-    axiosInstance.get<UsersResponse>('/admin/users', { params }),
+    axiosInstance.get<UsersResponse>('/users', { params }),
 
   // Astrologer specific endpoints
   getAstrologers: (
     role: 'ASTROMEGISTUS' | 'ASTROMEGISTUS_COACH',
     params?: Omit<UserQueryParams, 'role'>
   ) =>
-    axiosInstance.get<UsersResponse>('/admin/users', {
-      params: { ...params, role, availableTimeSlots: true, status: true },
+    axiosInstance.get<UsersResponse>('/users', {
+      params: { ...params, role, status: true },
     }),
 
   // Time Slots API

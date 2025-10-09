@@ -1,15 +1,17 @@
 'use client';
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import SessionCard from '../../_components/session-card';
 import { usePastReadings } from '@/hooks/query/booking-queries';
 import { enqueueSnackbar } from 'notistack';
-import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import SectionLoader from '@/components/common/section-loader';
 import { Button } from '@/components/ui/button';
 import { Clock, Download, Eye, Radio } from 'lucide-react';
 
 export default function PastReadingsPage() {
   const [page, setPage] = useState(1);
   const limit = 10;
+  const router = useRouter();
 
   const {
     data: readingsData,
@@ -30,12 +32,12 @@ export default function PastReadingsPage() {
   if (isLoading && !readingsData) {
     return (
       <div className="py-10">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex items-center gap-2 text-white">
-            <SpinnerLoader size={20} color="#ffffff" />
-            <span>Loading past readings...</span>
-          </div>
-        </div>
+        <SectionLoader
+          message="Loading past readings..."
+          className="min-h-[400px]"
+          size={40}
+          color="#D4AF37"
+        />
       </div>
     );
   }
@@ -88,14 +90,14 @@ export default function PastReadingsPage() {
       <div className="flex flex-col sm:flex-row gap-4 max-w-lg">
         <Button
           className="flex items-center justify-center gap-2 flex-1 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black"
-          onClick={() => window.location.href = '/dashboard/view-reading'}
+          onClick={() => router.push('/dashboard/view-reading?type=reading')}
         >
           <Eye className="h-5 w-5" /> View Reading
         </Button>
 
-        <Button className="flex items-center justify-center gap-2 flex-1 bg-transparent text-golden-glow border border-golden-glow">
+        {/* <Button className="flex items-center justify-center gap-2 flex-1 bg-transparent text-golden-glow border border-golden-glow">
           <Download className="h-5 w-5" /> Download PDF
-        </Button>
+        </Button> */}
       </div>
     </div>
   );

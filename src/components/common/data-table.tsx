@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import * as React from "react";
+import * as React from 'react';
 import {
   ColumnDef,
   flexRender,
@@ -12,10 +12,10 @@ import {
   ColumnFiltersState,
   getPaginationRowModel,
   PaginationState,
-} from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Loader2 } from "lucide-react";
+} from '@tanstack/react-table';
+import { ArrowUpDown, ChevronDown, Loader2 } from 'lucide-react';
 
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -23,9 +23,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
-import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+} from '@/components/ui/table';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -70,7 +70,9 @@ export function DataTable<TData, TValue>({
   rowClassName,
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
+    []
+  );
 
   const table = useReactTable({
     data,
@@ -163,84 +165,135 @@ export function DataTable<TData, TValue>({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="w-full">
-          <div className="min-w-[1200px]">
-            <Table className={tableClassName}>
-              <TableHeader className={headerClassName}>
-                {table.getHeaderGroups().map((headerGroup) => (
+        {/* Desktop Table View */}
+        <div className="hidden md:block">
+          <Table className={tableClassName}>
+            <TableHeader className={headerClassName}>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow
+                  key={headerGroup.id}
+                  className="border-b border-white/10 hover:bg-transparent"
+                >
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className="text-left py-3 px-4 text-white/70 font-medium h-auto"
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext()
+                          )}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
                   <TableRow
-                    key={headerGroup.id}
-                    className="border-b border-white/10 hover:bg-transparent"
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                    className={`border-b border-white/5 hover:bg-white/5 ${rowClassName || ''}`}
                   >
-                    {headerGroup.headers.map((header) => (
-                      <TableHead
-                        key={header.id}
-                        className="text-left py-3 px-4 text-white/70 font-medium h-auto"
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell
+                        key={cell.id}
+                        className="py-4 px-4"
                       >
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext()
-                            )}
-                      </TableHead>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
                     ))}
                   </TableRow>
-                ))}
-              </TableHeader>
-              <TableBody>
-                {table.getRowModel().rows?.length ? (
-                  table.getRowModel().rows.map((row) => (
-                    <TableRow
-                      key={row.id}
-                      data-state={row.getIsSelected() && "selected"}
-                      className={`border-b border-white/5 hover:bg-white/5 ${rowClassName || ''}`}
-                    >
-                      {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className="py-4 px-4 whitespace-nowrap"
-                        >
-                          {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                        </TableCell>
-                      ))}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell colSpan={columns.length} className="h-24 text-center text-white/50">
-                      No results.
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </div>
-          <ScrollBar orientation="vertical" />
-          <ScrollBar orientation="horizontal" />
-        </ScrollArea>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-white/50"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="block md:hidden space-y-3">
+          {table.getRowModel().rows?.length ? (
+            table.getRowModel().rows.map((row) => (
+              <div
+                key={row.id}
+                className="bg-white/5 rounded-lg p-4 border border-white/10"
+              >
+                {row.getVisibleCells().map((cell) => {
+                  const header = cell.column.columnDef.header;
+                  const headerText = typeof header === 'string'
+                    ? header
+                    : typeof header === 'function'
+                    ? 'Field'
+                    : cell.column.id;
+
+                  return (
+                    <div key={cell.id} className="flex justify-between items-start py-2 border-b border-white/5 last:border-b-0">
+                      <div className="font-medium text-white/70 text-sm min-w-[80px]">
+                        {headerText}
+                      </div>
+                      <div className="text-white text-sm text-right flex-1 ml-2">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ))
+          ) : (
+            <div className="text-center py-8 text-white/50">
+              No results.
+            </div>
+          )}
+        </div>
       </CardContent>
 
       {/* External Pagination */}
       {pagination && pagination.pages > 1 && onPageChange && (
-        <div className="flex items-center justify-between px-6 py-4 border-t border-white/10">
-          <div className="text-sm text-white/70">
-            Showing {(currentPage - 1) * pageSize + 1} to{' '}
-            {Math.min(currentPage * pageSize, pagination.total)} of {pagination.total}{' '}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-4 sm:px-6 py-4 border-t border-white/10 bg-gradient-to-r from-emerald-green/5 to-emerald-green/10">
+          <div className="text-xs sm:text-sm text-white/70 font-medium text-center sm:text-left">
+            Showing{' '}
+            <span className="text-white font-semibold">
+              {(currentPage - 1) * pageSize + 1}
+            </span>{' '}
+            to{' '}
+            <span className="text-white font-semibold">
+              {Math.min(currentPage * pageSize, pagination.total)}
+            </span>{' '}
+            of{' '}
+            <span className="text-white font-semibold">{pagination.total}</span>{' '}
             results
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="outline"
               size="sm"
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage <= 1}
-              className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+              className="!h-8 sm:!h-10 bg-white/5 border-white/20 text-white hover:bg-white/15 hover:border-white/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-2 sm:px-4 py-1 sm:py-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
             >
-              Previous
+              <span className="hidden sm:inline">Previous</span>
+              <span className="sm:hidden">Prev</span>
             </Button>
 
-            <div className="flex items-center gap-1">
+            <div className="hidden sm:flex items-center gap-1 mx-2">
               {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
                 let pageNumber;
                 if (pagination.pages <= 5) {
@@ -256,13 +309,13 @@ export function DataTable<TData, TValue>({
                 return (
                   <Button
                     key={pageNumber}
-                    variant={currentPage === pageNumber ? "default" : "ghost"}
+                    variant="ghost"
                     size="sm"
                     onClick={() => onPageChange(pageNumber)}
                     className={
                       currentPage === pageNumber
-                        ? "bg-emerald-500 text-white"
-                        : "text-white hover:bg-white/10"
+                        ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold shadow-lg border border-emerald-400/50 rounded-lg min-w-[40px] h-10 hover:from-emerald-600 hover:to-emerald-700'
+                        : 'bg-white/5 border border-white/20 text-white hover:bg-white/15 hover:border-white/30 rounded-lg min-w-[40px] h-10 transition-all duration-200'
                     }
                   >
                     {pageNumber}
@@ -271,14 +324,20 @@ export function DataTable<TData, TValue>({
               })}
             </div>
 
+            {/* Mobile page indicator */}
+            <div className="sm:hidden mx-2 text-xs text-white/70">
+              {currentPage} / {pagination.pages}
+            </div>
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage >= pagination.pages}
-              className="bg-white/5 border-white/20 text-white hover:bg-white/10"
+              className="!h-8 sm:!h-10 bg-white/5 border-white/20 text-white hover:bg-white/15 hover:border-white/30 disabled:opacity-40 disabled:cursor-not-allowed rounded-lg px-2 sm:px-4 py-1 sm:py-2 transition-all duration-200 shadow-sm hover:shadow-md text-xs sm:text-sm"
             >
-              Next
+              <span className="hidden sm:inline">Next</span>
+              <span className="sm:hidden">Next</span>
             </Button>
           </div>
         </div>
@@ -290,15 +349,15 @@ export function DataTable<TData, TValue>({
 // Helper function to create sortable column header
 export function SortableHeader({
   column,
-  children
+  children,
 }: {
   column: any;
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <Button
       variant="ghost"
-      onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+      onClick={() => column.toggleSorting(column.getIsSorted() === 'asc')}
       className="h-auto p-0 text-white/70 hover:text-white hover:bg-transparent font-medium justify-start"
     >
       {children}

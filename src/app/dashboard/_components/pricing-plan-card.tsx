@@ -9,7 +9,7 @@ interface Plan {
   priceLabel: string;
   priceSuffix: string;
   image: any;
-  badge: string;
+  badge?: string;
   features: string[];
   buttonText: string;
   buttonStyle?: string;
@@ -18,26 +18,32 @@ interface Plan {
 
 interface PricingPlanCardProps {
   plan: Plan;
+  disabled?: boolean;
+  onClick?: () => void;
 }
 
 export default function PricingPlanCard({
   plan,
+  disabled = false,
+  onClick,
 }: PricingPlanCardProps): JSX.Element {
   return (
     <div
       key={plan.id}
-      className="relative max-w-96 bg-white shadow-md flex flex-col border-t-10 border-b-10"
+      className="relative w-full max-w-96 bg-white shadow-md flex flex-col border-t-10 border-b-10"
       style={{ borderColor: plan.borderColor }}
     >
-      <div className="absolute top-3 right-0 z-20">
-        <div
-          className="relative bg-golden-glow-dark text-white text-xs font-normal px-3 py-2 shadow-lg 
+      {plan.badge && (
+        <div className="absolute top-3 right-0 z-20">
+          <div
+            className="relative bg-golden-glow-dark text-white text-xs font-normal px-3 py-2 shadow-lg 
     before:content-[''] before:absolute before:top-1/2 before:-left-3 before:-translate-y-1/2 
     before:border-y-[16px] before:border-y-transparent before:border-r-[12px] before:border-r-golden-glow-dark"
-        >
-          {plan.badge}
+          >
+            {plan.badge}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="px-8 pt-10 flex-0">
         <div className="flex justify-center">
@@ -75,7 +81,12 @@ export default function PricingPlanCard({
       </div>
 
       <div className="px-8 pb-4 pt-8">
-        <Button variant="default" className={`w-full ${plan.buttonStyle}`}>
+        <Button
+          variant="default"
+          className={`w-full ${plan.buttonStyle}`}
+          disabled={disabled}
+          onClick={onClick}
+        >
           {plan.buttonText}
         </Button>
       </div>

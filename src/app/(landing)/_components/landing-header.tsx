@@ -7,16 +7,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 import { logo } from '../../../components/assets';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ShoppingCart } from 'lucide-react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
+// import Cookies from 'js-cookie';
 
 const navItems = [
   { label: 'Home', href: '/' },
   { label: 'Products', href: '/products' },
-  { label: 'Coaching', href: '/coaching' },
   { label: 'About Us', href: '/about-us' },
   { label: 'Contact', href: '/contact' },
   { label: 'Career', href: '/career' },
@@ -25,9 +25,37 @@ const navItems = [
 
 export default function LandingHeader() {
   const userInfo = useSelector((state: RootState) => state.user.currentUser);
+  // const isAuthenticated = Cookies.get('astro-tk');
   const router = useRouter();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [cartItemCount, setCartItemCount] = useState(0);
+
+  useEffect(() => {
+    const updateCartCount = () => {
+      const storedCart = localStorage.getItem('cart');
+      if (storedCart) {
+        const parsedCart = JSON.parse(storedCart);
+        setCartItemCount(parsedCart.length);
+      } else {
+        setCartItemCount(0);
+      }
+    };
+
+    // Initial load
+    updateCartCount();
+
+    // Listen for storage changes
+    window.addEventListener('storage', updateCartCount);
+
+    // Custom event for cart updates within the same tab
+    window.addEventListener('cartUpdated', updateCartCount);
+
+    return () => {
+      window.removeEventListener('storage', updateCartCount);
+      window.removeEventListener('cartUpdated', updateCartCount);
+    };
+  }, []);
 
   const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
   return (
@@ -59,7 +87,7 @@ export default function LandingHeader() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/shopping-cart">
+            <Link href="/shopping-cart" className="relative">
               <ShoppingCart
                 className={`w-4 h-4 cursor-pointer ${
                   pathname === '/shopping-cart'
@@ -67,6 +95,11 @@ export default function LandingHeader() {
                     : 'text-[#FFFFFF66] hover:text-white'
                 }`}
               />
+              {cartItemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                  {cartItemCount}
+                </span>
+              )}
             </Link>
           </nav>
 
@@ -74,7 +107,7 @@ export default function LandingHeader() {
             {userInfo ? (
               <Button
                 variant="default"
-                className="bg-white text-emerald-green font-semibold px-4 py-2 hover:opacity-90"
+                className="bg-white text-emerald-green font-semibold px-4 !py-2.5 !h-auto hover:opacity-90"
                 onClick={() => router.push('/dashboard/booked-readings')}
               >
                 Dashboard
@@ -90,7 +123,7 @@ export default function LandingHeader() {
                 </Button>
                 <Button
                   variant="default"
-                  className="bg-white text-emerald-green font-semibold px-4 py-2 hover:opacity-90"
+                  className="bg-white text-emerald-green font-semibold px-4 !py-2.5 !h-auto hover:opacity-90"
                   onClick={() => router.push('/auth-selection')}
                 >
                   Sign Up
@@ -156,7 +189,7 @@ export default function LandingHeader() {
                 </Button>
                 <Button
                   variant="default"
-                  className="bg-white text-emerald-green font-semibold w-full px-4 py-2 hover:opacity-90"
+                  className="bg-white text-emerald-green font-semibold w-full px-4 !py-2.5 !h-auto hover:opacity-90"
                   onClick={() => router.push('/auth-selection')}
                 >
                   Sign Up

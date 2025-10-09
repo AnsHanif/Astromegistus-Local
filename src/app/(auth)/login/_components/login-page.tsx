@@ -14,6 +14,7 @@ import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import { useDispatch } from 'react-redux';
 import { setCurrentUser } from '@/store/slices/user-slice';
+import { useQueryClient } from '@tanstack/react-query';
 
 type LoginForm = {
   email: string;
@@ -23,6 +24,7 @@ type LoginForm = {
 type LoginPageProps = { onSuccess: () => void };
 
 const LoginPage = ({ onSuccess }: LoginPageProps) => {
+  const queryClient = useQueryClient();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const router = useRouter();
   const dispatch = useDispatch();
@@ -37,34 +39,66 @@ const LoginPage = ({ onSuccess }: LoginPageProps) => {
   const onSubmit = (data: LoginForm) => {
     mutate(data, {
       onSuccess: (response: any) => {
-        closeSnackbar();
-        enqueueSnackbar(response?.message, { variant: 'success' });
-
         if (response?.data?.token && response?.data?.user) {
           const { user, token } = response.data;
 
-          let resolvedRole = 'GUEST';
-          if (
-            Array.isArray(user.subscriptions) &&
-            user.subscriptions.length > 0
-          ) {
-            const planName = user.subscriptions[0]?.plan?.name;
-            if (planName === 'CLASSIC') resolvedRole = 'CLASSIC';
-            if (planName === 'PREMIER') resolvedRole = 'PREMIER';
-          } else {
-            resolvedRole = 'GUEST';
+          if (user.role === 'ADMIN') {
+            closeSnackbar();
+            enqueueSnackbar(
+              'Access denied: Admins must log in through the admin portal.',
+              {
+                variant: 'error',
+              }
+            );
+            return;
           }
+
+          let resolvedRole: string = 'GUEST';
+
+          if (user.role === 'PAID') {
+            if (
+              Array.isArray(user.subscriptions) &&
+              user.subscriptions.length > 0
+            ) {
+              const planName = user.subscriptions[0]?.plan?.name;
+              if (planName === 'CLASSIC') resolvedRole = 'CLASSIC';
+              if (planName === 'PREMIER') resolvedRole = 'PREMIER';
+            } else {
+              resolvedRole = 'GUEST';
+            }
+          } else if (
+            user.role === 'ASTROMEGISTUS' ||
+            user.role === 'ASTROMEGISTUS_COACH'
+          ) {
+            resolvedRole = user.role;
+          } else if (user.role === 'GUEST') {
+            resolvedRole = 'GUEST';
+          } else {
+            enqueueSnackbar('Invalid role detected. Please contact support.', {
+              variant: 'error',
+            });
+            return;
+          }
+
+          // remove cart items and cache products
+          localStorage.removeItem('cart');
+          localStorage.removeItem('final-cart');
+          queryClient.clear();
 
           localStorage.setItem('role', resolvedRole);
           Cookies.set('astro-tk', token);
           dispatch(setCurrentUser({ user, token }));
 
-          if (user.role === 'ADMIN') {
-            window.location.href = '/admin';
-          } else if (user.role === 'ASTROLOGER') {
-            window.location.href = '/dashboard/astrologers';
+          closeSnackbar();
+          enqueueSnackbar(response?.message, { variant: 'success' });
+
+          if (
+            resolvedRole === 'ASTROMEGISTUS' ||
+            resolvedRole === 'ASTROMEGISTUS_COACH'
+          ) {
+            router.push('/dashboard/astrologers');
           } else {
-            window.location.href = '/dashboard/booked-readings';
+            router.push('/dashboard/booked-readings');
           }
         }
       },

@@ -1,5 +1,6 @@
 'use client';
 import React, { JSX } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Clock, Download, Eye, Radio } from 'lucide-react';
 
@@ -8,6 +9,8 @@ interface SessionCardProps {
 }
 
 export default function SessionCard({ type }: SessionCardProps): JSX.Element {
+  const router = useRouter();
+
   return (
     <div className="my-4 py-6 px-4 sm:px-8 bg-[var(--bg)] text-white shadow-lg flex flex-col gap-4">
       <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0">
@@ -54,7 +57,7 @@ export default function SessionCard({ type }: SessionCardProps): JSX.Element {
         ) : (
           <Button
             className="flex items-center justify-center gap-2 flex-1 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black"
-            onClick={() => window.location.href = '/dashboard/view-reading'}
+            onClick={() => router.push('/dashboard/view-reading?type=session')}
           >
             <Eye className="h-5 w-5" /> View Reading
           </Button>

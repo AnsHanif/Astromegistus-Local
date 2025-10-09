@@ -67,7 +67,10 @@ const DashboardModeLayout: FC<DashboardModeLayoutProps> = ({ children }) => {
       </div>
 
       <div className="relative flex justify-center md:justify-end items-center gap-5 mb-2 md:mb-0">
-        <Button className="w-full max-w-44 md:max-w-60 flex items-center gap-2 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black px-2">
+        <Button
+          className="w-full max-w-44 md:max-w-60 flex items-center gap-2 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black px-2"
+          onClick={() => router.push('/products')}
+        >
           <Plus className="h-5 w-5" />
           Book Reading
         </Button>
@@ -79,7 +82,7 @@ const DashboardModeLayout: FC<DashboardModeLayoutProps> = ({ children }) => {
       </div>
 
       <h1 className="text-size-heading md:text-size-primary font-bold mb-2">
-        Welcome Back, Jhon
+        Welcome Back, {userInfo?.name ? userInfo.name : 'Loading...'}
       </h1>
 
       <p className="text-sm font-normal mb-4">

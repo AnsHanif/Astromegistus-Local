@@ -61,6 +61,8 @@ const FormInput: React.FC<FormInputProps> = ({
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     // register(name).onChange(e);
+    const { onChange } = register(name);
+    onChange(e);
 
     if (value.length === maxLength && onMoveToNext && index !== undefined) {
       onMoveToNext(index + 1);
@@ -68,11 +70,11 @@ const FormInput: React.FC<FormInputProps> = ({
   };
 
   return (
-    <div className="space-y-4 w-full">
+    <div className="w-full relative pb-6">
       {label && (
         <Label
           htmlFor={name}
-          className={`block text-size-secondary md:text-size-medium font-semibold ${labelClassName}`}
+          className={`block text-size-secondary md:text-size-medium font-semibold mb-4 ${labelClassName}`}
         >
           {label}
         </Label>
@@ -122,7 +124,7 @@ const FormInput: React.FC<FormInputProps> = ({
 
       {/* Validation error */}
       {errors?.[name] && (
-        <p className="text-red-500 text-sm mt-1">
+        <p className="text-red-500 text-sm absolute -bottom-5 left-0">
           {errors?.[name]?.message as string}
         </p>
       )}

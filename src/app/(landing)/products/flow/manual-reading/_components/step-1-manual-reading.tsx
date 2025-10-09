@@ -18,6 +18,9 @@ import { PLACE_OF_BIRTH_OPTIONS } from '@/app/(auth)/signup/_components/signup.c
 import { Input } from '@/components/ui/input';
 import { ManualReading, ManualReadingForm } from './manual-reading.interfaces';
 import { useBooking } from '../../_components/booking-context';
+import { useCheckLocation } from '@/hooks/mutation/booking-mutation/booking-mutation';
+import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import { enqueueSnackbar } from 'notistack';
 
 interface Step1ManualReading extends ManualReading {
   classNames?: string;
@@ -32,6 +35,10 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
   // Get booking context to store data and initialize form
   const { data: bookingData, updateData } = useBooking();
 
+  // Location checking mutation
+  const { mutate: checkLocationMutation, isPending: isCheckingLocation } =
+    useCheckLocation();
+
   const [formData, setFormData] = useState({
     day: bookingData.day || '',
     month: bookingData.month || '',
@@ -41,6 +48,8 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
     timePeriod: bookingData.timePeriod || '',
     gender: bookingData.gender || '',
     birthCountry: bookingData.birthCountry || '',
+    birthCountryLabel: bookingData.birthCountryLabel || '',
+    birthCity: bookingData.birthCity || '',
     question1: bookingData.question1 || '',
     question2: bookingData.question2 || '',
   });
@@ -86,6 +95,116 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
     [methods]
   );
 
+  const handleCountrySelect = useCallback(
+    (value: string) => {
+      // Find the selected country option to get both value and label
+      const selectedCountry = PLACE_OF_BIRTH_OPTIONS.find(
+        (option) => option.value === value
+      );
+
+      setFormData((prev) => ({
+        ...prev,
+        birthCountry: value,
+        birthCountryLabel: selectedCountry?.label || value,
+      }));
+      methods.clearErrors('birthCountry');
+    },
+    [methods]
+  );
+
+  const checkLocationForPerson = () => {
+    const formValues = methods.getValues();
+    const { birthCity } = formValues;
+    const { birthCountry } = formData;
+
+    console.log('Location check values:', { birthCountry, birthCity });
+
+    // Only check if both country and city are provided
+    if (birthCountry && birthCity && birthCity.trim().length >= 2) {
+      checkLocationMutation(
+        {
+          cityName: birthCity.trim(),
+          countryID: birthCountry,
+        },
+        {
+          onSuccess: (response: any) => {
+            console.log('Location check response:', response);
+            if (
+              response.exists &&
+              response.location &&
+              response.location.length > 0
+            ) {
+              const location = response.location[0]; // Get first location from array
+              const locationInfo = {
+                lat: location.lat,
+                lng: location.lng,
+                tz: location.tz,
+              };
+
+              // Store location data in context
+              updateData({
+                ...bookingData,
+                fullName: formValues.fullName,
+                day: formData.day,
+                month: formData.month,
+                year: formData.year,
+                hour: formData.hour,
+                minute: formData.minute,
+                timePeriod: formData.timePeriod,
+                gender: formData.gender,
+                birthCountry: formData.birthCountry,
+                birthCountryLabel: formData.birthCountryLabel,
+                birthCity: formValues.birthCity,
+                question1: formData.question1,
+                question2: formData.question2,
+                latitude: locationInfo.lat,
+                longitude: locationInfo.lng,
+                locationTimezone: locationInfo.tz,
+              });
+
+              console.log('Location data stored:', locationInfo);
+              // Proceed to next step after storing location data
+              onNext?.();
+            } else {
+              console.log('Location not found in external API');
+              enqueueSnackbar(
+                'Location not found. Please check your city and country.',
+                {
+                  variant: 'error',
+                }
+              );
+            }
+          },
+          onError: (error) => {
+            console.error('Location check failed:', error);
+            enqueueSnackbar('Failed to verify location. Please try again.', {
+              variant: 'error',
+            });
+          },
+        }
+      );
+    } else {
+      // No location to check, proceed directly to next step
+      updateData({
+        ...bookingData,
+        fullName: formValues.fullName,
+        day: formData.day,
+        month: formData.month,
+        year: formData.year,
+        hour: formData.hour,
+        minute: formData.minute,
+        timePeriod: formData.timePeriod,
+        gender: formData.gender,
+        birthCountry: formData.birthCountry,
+        birthCountryLabel: formData.birthCountryLabel,
+        birthCity: formValues.birthCity,
+        question1: formData.question1,
+        question2: formData.question2,
+      });
+      onNext?.();
+    }
+  };
+
   const onSubmit = (data: ManualReadingForm) => {
     // Validate all required fields before proceeding (same as automated reading)
     let hasError = false;
@@ -126,24 +245,19 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
       hasError = true;
     }
 
+    // Check city of birth
+    if (!data.birthCity || data.birthCity.trim().length < 2) {
+      methods.setError('birthCity', {
+        type: 'required',
+        message: 'City of birth is required and must be at least 2 characters',
+      });
+      hasError = true;
+    }
+
     // Only proceed if no validation errors
     if (!hasError) {
-      // Store all personal data in booking context
-      updateData({
-        fullName: data.fullName,
-        day: formData.day,
-        month: formData.month,
-        year: formData.year,
-        hour: formData.hour,
-        minute: formData.minute,
-        timePeriod: formData.timePeriod,
-        gender: formData.gender,
-        birthCountry: formData.birthCountry,
-        question1: formData.question1,
-        question2: formData.question2,
-      });
-
-      onNext?.();
+      // Check location first, then proceed to next step
+      checkLocationForPerson();
     }
   };
 
@@ -210,9 +324,7 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
                   Place of birth
                 </Label>
                 <CustomSelect
-                  onSelect={(value: string) =>
-                    handleSelect('birthCountry', value)
-                  }
+                  onSelect={handleCountrySelect}
                   options={PLACE_OF_BIRTH_OPTIONS}
                   size="sm"
                   variant="default"
@@ -223,13 +335,37 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
                   triggerClassName="h-12 sm:h-15 w-full cursor-pointer bg-transparent border-grey hover:border-black focus:border-black text-black text-size-secondary"
                   contentClassName="w-full max-h-60 overflow-y-auto"
                 />
-                {/* This was missing */}
+                {/* Country Error Display */}
                 {methods.formState.errors.birthCountry && (
                   <p className="text-red-500 text-sm">
                     {methods.formState.errors.birthCountry.message}
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* City of Birth */}
+            <div className="w-full flex mb-4 md:mb-8 md:flex-row flex-col gap-6 md:gap-8">
+              <div className="w-full">
+                <FormInput
+                  label="City Of Birth"
+                  name="birthCity"
+                  type="text"
+                  placeholder="Enter City Name"
+                  className="w-full"
+                  rules={{
+                    required: 'City of birth is required',
+                    validate: (value) =>
+                      value.trim().length >= 2 ||
+                      'City name must be at least 2 characters long.',
+                    maxLength: {
+                      value: 50,
+                      message: 'City name must be at most 50 characters long.',
+                    },
+                  }}
+                />
+              </div>
+              <div className="w-full"></div>
             </div>
           </div>
 
@@ -252,25 +388,25 @@ const Step1ManualReading: FC<Step1ManualReading> = ({ onNext, onPrev }) => {
               onChange={handleChange}
             />
           </div>
+          <div className="flex flex-col md:flex-row gap-4 md:gap-8">
+            <Button
+              onClick={onPrev}
+              variant={'outline'}
+              className="border-black hover:bg-grey-light-50 md:max-w-[10rem] w-full px-2"
+            >
+              Back
+            </Button>
+            <Button
+              onClick={methods.handleSubmit(onSubmit)}
+              variant={'outline'}
+              className="bg-emerald-green hover:bg-emerald-green/90 md:max-w-[10rem] w-full px-2 text-white disabled:opacity-50"
+              disabled={isCheckingLocation}
+            >
+              {isCheckingLocation ? <SpinnerLoader /> : 'Next'}
+            </Button>
+          </div>
         </form>
       </FormProvider>
-
-      <div className="flex flex-col md:flex-row gap-4 md:gap-8">
-        <Button
-          onClick={onPrev}
-          variant={'outline'}
-          className="border-black hover:bg-grey-light-50 md:max-w-[10rem] w-full px-2"
-        >
-          Back
-        </Button>
-        <Button
-          onClick={methods.handleSubmit(onSubmit)}
-          variant={'outline'}
-          className="bg-emerald-green hover:bg-emerald-green/90 md:max-w-[10rem] w-full px-2 text-white"
-        >
-          Next
-        </Button>
-      </div>
     </div>
   );
 };

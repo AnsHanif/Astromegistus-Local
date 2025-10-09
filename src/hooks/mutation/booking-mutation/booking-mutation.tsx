@@ -12,6 +12,10 @@ import {
   CreateRandomBookingRequest,
   CreateRandomCoachingBookingRequest,
 } from '@/services/api/booking-api';
+import { externalLocationAPI } from '@/services/api/location-api';
+import { CheckLocationRequest, CheckLocationResponse } from '@/types/location';
+import axiosInstance from '@/services/axios';
+import { getErrorMessage } from '@/utils/error-handler';
 
 export const useCreateBooking = () => {
   const queryClient = useQueryClient();
@@ -21,15 +25,13 @@ export const useCreateBooking = () => {
     mutationFn: (data: CreateBookingRequest) => bookingAPI.createBooking(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['purchased-products'] });
       enqueueSnackbar('Booking created successfully!', {
         variant: 'success',
       });
     },
     onError: (error: any) => {
-      enqueueSnackbar(
-        error.response?.data?.message || 'Failed to create booking.',
-        { variant: 'error' }
-      );
+      enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
     },
   });
 };
@@ -64,9 +66,12 @@ export const useCreateRandomBooking = () => {
       bookingAPI.createRandomBooking(data),
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
-      enqueueSnackbar('Booking created successfully with auto-assigned astrologer!', {
-        variant: 'success',
-      });
+      enqueueSnackbar(
+        'Booking created successfully with auto-assigned astrologer!',
+        {
+          variant: 'success',
+        }
+      );
     },
     onError: (error: any) => {
       enqueueSnackbar(
@@ -86,9 +91,12 @@ export const useCreateRandomCoachingBooking = () => {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['bookings'] });
       queryClient.invalidateQueries({ queryKey: ['coaching-sessions'] });
-      enqueueSnackbar('Coaching session booked successfully with auto-assigned coach!', {
-        variant: 'success',
-      });
+      enqueueSnackbar(
+        'Coaching session booked successfully with auto-assigned coach!',
+        {
+          variant: 'success',
+        }
+      );
     },
     onError: (error: any) => {
       enqueueSnackbar(
@@ -144,6 +152,7 @@ export const useRescheduleBooking = () => {
       data,
     }: {
       bookingId: string;
+      type?: string;
       data: RescheduleBookingRequest;
     }) => bookingAPI.rescheduleBooking(bookingId, data),
     onSuccess: (response, variables) => {
@@ -152,6 +161,9 @@ export const useRescheduleBooking = () => {
       queryClient.invalidateQueries({ queryKey: ['recent-sessions'] });
       queryClient.invalidateQueries({
         queryKey: ['session-preparation', variables.bookingId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['readings', 'recent'],
       });
 
       enqueueSnackbar('Booking rescheduled successfully!', {
@@ -193,6 +205,99 @@ export const useSavePreparationNotes = () => {
         error.response?.data?.message || 'Failed to save preparation notes.',
         { variant: 'error' }
       );
+    },
+  });
+};
+
+export const useCheckLocation = () => {
+  return useMutation({
+    mutationFn: async (
+      data: CheckLocationRequest
+    ): Promise<CheckLocationResponse> => {
+      const { cityName, countryID } = data;
+
+      // Check external API
+      const externalData = await externalLocationAPI.checkLocation(
+        cityName,
+        countryID
+      );
+
+      if (!externalData) {
+        return {
+          exists: false,
+          message: 'Location not found in external API',
+        };
+      }
+
+      return {
+        exists: true,
+        location: externalData,
+        message: 'Location found in external API',
+      };
+    },
+
+    onError: (error: any) => {
+      enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
+    },
+  });
+};
+
+// ============================================
+// V2 Booking Mutations
+// ============================================
+
+export const useCreateBookingV2 = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      providerId: string;
+      productId: string;
+      startDateTimeUTC: string;
+      endDateTimeUTC: string;
+    }) => bookingAPI.createBookingV2(data),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['available-slots-v2'] });
+      enqueueSnackbar('Booking created successfully!', {
+        variant: 'success',
+      });
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message || 'Failed to create booking.';
+      enqueueSnackbar(message, { variant: 'error' });
+    },
+  });
+};
+
+export const useCreateCoachingBookingV2 = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: {
+      providerId: string;
+      sessionId: string;
+      // startDateTimeUTC: string;
+      // endDateTimeUTC: string;
+      selectedDate: string;
+      selectedTime: string;
+      timezone: string;
+    }) => bookingAPI.createCoachingSessionBooking(data),
+    onSuccess: (response) => {
+      queryClient.invalidateQueries({ queryKey: ['bookings'] });
+      queryClient.invalidateQueries({ queryKey: ['coaching-sessions'] });
+      queryClient.invalidateQueries({
+        queryKey: ['purchased-products'],
+      });
+      enqueueSnackbar('Coaching session booked successfully!', {
+        variant: 'success',
+      });
+    },
+    onError: (error: any) => {
+      const message =
+        error.response?.data?.message || 'Failed to book coaching session.';
+      enqueueSnackbar(message, { variant: 'error' });
     },
   });
 };

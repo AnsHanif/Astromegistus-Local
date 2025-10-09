@@ -14,7 +14,7 @@ const Signup = () => {
   const [showOtpForm, setShowOtpForm] = useState(false);
 
   const handleSuccess = (data: any) => {
-    setShowOtpForm(false);
+    // setShowOtpForm(false);
 
     if (data?.token && data?.user) {
       Cookies.set('astro-tk', data?.token);

@@ -60,8 +60,8 @@ export default function ProductFormModal({
     description: '',
     productType: 'BOTH',
     automatedPrice: undefined,
-    livePrice: 0,
-    categories: ['NATAL_READING'],
+    livePrice: '' as any,
+    categories: [],
     duration: '',
     imageUrl: '',
     isActive: true,
@@ -70,12 +70,27 @@ export default function ProductFormModal({
   // Reset form when modal opens/closes or initialData changes
   useEffect(() => {
     if (isOpen) {
+      setShowValidationError(false);
+      setImageError(null);
       if (mode === 'edit' && initialData) {
+        // Extract price values - handle both number and object formats
+        const automatedPrice = typeof initialData.automatedPrice === 'number'
+          ? initialData.automatedPrice
+          : (typeof (initialData as any).pricing?.automated === 'object'
+              ? (initialData as any).pricing.automated.originalPrice
+              : (initialData as any).pricing?.automated);
+
+        const livePrice = typeof initialData.livePrice === 'number'
+          ? initialData.livePrice
+          : (typeof (initialData as any).pricing?.live === 'object'
+              ? (initialData as any).pricing.live.originalPrice
+              : (initialData as any).pricing?.live ?? 0);
+
         setFormData({
           ...initialData,
           productType: initialData.productType ?? 'BOTH',
-          automatedPrice: initialData.automatedPrice ?? undefined,
-          livePrice: initialData.livePrice ?? 0,
+          automatedPrice: automatedPrice ?? undefined,
+          livePrice: livePrice,
           imageUrl: initialData.imageUrl || '', // Handle null imageUrl
         });
       } else {
@@ -84,18 +99,20 @@ export default function ProductFormModal({
           description: '',
           productType: 'BOTH',
           automatedPrice: undefined,
-          livePrice: 0,
-          categories: ['NATAL_READING'],
+          livePrice: '' as any,
+          categories: [],
           duration: '',
           imageUrl: '',
           isActive: true,
         });
       }
     }
-  }, [isOpen, mode, initialData]);
+  }, [isOpen, mode, initialData?.id, initialData?.livePrice]);
+
 
   const [imageError, setImageError] = useState<string | null>(null);
   const [pendingImageFile, setPendingImageFile] = useState<File | null>(null);
+  const [showValidationError, setShowValidationError] = useState(false);
 
   // Cleanup temporary blob URLs when modal closes or component unmounts
   useEffect(() => {
@@ -129,6 +146,9 @@ export default function ProductFormModal({
   const handleImageUpload = async (file: File) => {
     try {
       console.log('Handling image upload for product:', formData.id || 'new');
+
+      // Clear any previous image error on successful upload
+      setImageError(null);
 
       if (mode === 'add') {
         // For new products, store the file temporarily and notify parent
@@ -177,9 +197,11 @@ export default function ProductFormModal({
   };
 
   const handleSubmit = () => {
-    if (!formData.name || !formData.description || formData.livePrice <= 0) {
+    if (!formData.name || !formData.description || formData.livePrice <= 0 || formData.categories.length === 0) {
+      setShowValidationError(true);
       return;
     }
+    setShowValidationError(false);
 
     // For new products with pending image, submit without image URL
     // The parent will handle image upload after product creation
@@ -193,7 +215,7 @@ export default function ProductFormModal({
   };
 
   const isFormValid = () => {
-    return formData.name && formData.description && formData.livePrice > 0;
+    return formData.name && formData.description && formData.livePrice > 0 && formData.categories.length > 0;
   };
 
   const getIcon = () => {
@@ -247,7 +269,7 @@ export default function ProductFormModal({
             placeholder="Select product type"
             variant="default"
             triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:border-golden-glow focus:ring-0 focus:outline-none"
-            contentClassName="bg-emerald-green/40 border-white/30 shadow-2xl z-[10000]"
+            contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000]"
             itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
           />
         </div>
@@ -280,7 +302,8 @@ export default function ProductFormModal({
             </label>
             <div className="relative">
               <Input
-                type="number"
+                type="text"
+                inputMode="decimal"
                 value={
                   formData.automatedPrice === 0 ||
                   formData.automatedPrice == null
@@ -291,14 +314,12 @@ export default function ProductFormModal({
                   const value = e.target.value;
                   if (value === '') {
                     handleInputChange('automatedPrice', 0);
-                  } else {
+                  } else if (/^\d*\.?\d*$/.test(value)) {
                     handleInputChange('automatedPrice', parseFloat(value) || 0);
                   }
                 }}
                 placeholder="Enter automated price"
-                min="0"
-                step="0.01"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] pr-8"
+                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 pr-8"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 pointer-events-none">
                 $
@@ -312,24 +333,19 @@ export default function ProductFormModal({
             </label>
             <div className="relative">
               <Input
-                type="number"
-                value={
-                  formData.livePrice === 0 || formData.livePrice == null
-                    ? ''
-                    : formData.livePrice
-                }
+                type="text"
+                inputMode="decimal"
+                value={formData.livePrice !== null && formData.livePrice !== undefined ? formData.livePrice : ''}
                 onChange={(e) => {
                   const value = e.target.value;
                   if (value === '') {
-                    handleInputChange('livePrice', 0);
-                  } else {
-                    handleInputChange('livePrice', parseFloat(value) || 0);
+                    handleInputChange('livePrice', '');
+                  } else if (/^\d*\.?\d*$/.test(value)) {
+                    handleInputChange('livePrice', parseFloat(value));
                   }
                 }}
                 placeholder="Enter live price"
-                min="0"
-                step="0.01"
-                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none [-moz-appearance:textfield] pr-8"
+                className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 pr-8"
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-white/70 pointer-events-none">
                 $
@@ -344,7 +360,7 @@ export default function ProductFormModal({
           </label>
           <div className="space-y-3">
             {/* Selected Categories Display */}
-            {formData.categories.length > 0 && (
+            {formData.categories.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {formData.categories.map((category) => {
                   const categoryLabels = {
@@ -385,6 +401,16 @@ export default function ProductFormModal({
                   );
                 })}
               </div>
+            ) : null}
+
+            {/* Validation Error Message */}
+            {showValidationError && formData.categories.length === 0 && (
+              <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                <svg className="h-4 w-4 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-red-400 text-sm">At least one category must be selected</span>
+              </div>
             )}
 
             {/* Add Category Dropdown */}
@@ -420,7 +446,7 @@ export default function ProductFormModal({
               placeholder="Add category"
               variant="default"
               triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:border-golden-glow focus:ring-0 focus:outline-none"
-              contentClassName="bg-emerald-green/40 border-white/30 shadow-2xl z-[10000]"
+              contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000]"
               itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
             />
           </div>
@@ -428,11 +454,26 @@ export default function ProductFormModal({
 
         <div className="space-y-2">
           <label className="text-sm font-medium text-white/90">Duration</label>
-          <Input
-            value={formData.duration}
-            onChange={(e) => handleInputChange('duration', e.target.value)}
-            placeholder="e.g., 60 + 30 min"
-            className="bg-white/10 border-white/30 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
+          <CustomSelect
+            options={[
+              { label: '15-30 min', value: '15-30 min' },
+              { label: '30-45 min', value: '30-45 min' },
+              { label: '30-60 min', value: '30-60 min' },
+              { label: '45-60 min', value: '45-60 min' },
+              { label: '60-75 min', value: '60-75 min' },
+              { label: '60-90 min', value: '60-90 min' },
+              { label: '75-90 min', value: '75-90 min' },
+              { label: '90-120 min', value: '90-120 min' },
+            ]}
+            selectedValue={formData.duration}
+            onSelect={(value) => {
+              handleInputChange('duration', value);
+            }}
+            placeholder="Select duration"
+            variant="default"
+            triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:ring-0 focus:outline-none"
+            contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000] [&_.selected-item]:bg-white/20 [&_.selected-item]:text-white [&_.selected-item]:font-normal"
+            itemClassName="text-white hover:bg-white/10 focus:bg-white/10 [&[data-state=checked]]:bg-white/20 [&[data-state=checked]]:text-white [&[data-state=checked]]:font-normal"
           />
         </div>
 
@@ -451,7 +492,7 @@ export default function ProductFormModal({
               placeholder="Select status"
               variant="default"
               triggerClassName="w-full bg-white/10 border-white/30 text-white hover:bg-white/20 focus:border-golden-glow focus:ring-0 focus:outline-none"
-              contentClassName="bg-emerald-green/40 border-white/30 shadow-2xl z-[10000]"
+              contentClassName="bg-emerald-green border-white/30 shadow-2xl z-[10000]"
               itemClassName="text-white hover:bg-white/10 focus:bg-white/10"
             />
           </div>

@@ -1,14 +1,16 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { ChevronLeft, Plus, Trash2, Edit2 } from 'lucide-react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useGetAllServices } from '@/hooks/query/service-queries';
 import { useCreateService, useDeleteService, useUpdateService } from '@/hooks/mutation/service-mutations';
 import { Service, CreateServiceRequest } from '@/services/api/service-api';
+import FullScreenLoader from '@/components/common/full-screen-loader';
 
-const EditServicesPage = () => {
+const EditServicesContent = () => {
   const router = useRouter();
-  
+  const searchParams = useSearchParams();
+
   // API hooks
   const { data: servicesData, isLoading, error } = useGetAllServices();
   const createServiceMutation = useCreateService();
@@ -32,7 +34,12 @@ const EditServicesPage = () => {
   const services = servicesData?.data || [];
   
   const handleBack = () => {
-    router.push('/dashboard/astrologers/edit-profile');
+    const from = searchParams.get('from');
+    if (from === 'editProfile') {
+      router.push('/dashboard/astrologers/edit-profile?view=editProfile');
+    } else {
+      router.push('/dashboard/astrologers/edit-profile');
+    }
   };
   
   const handleRemoveService = (service: Service) => {
@@ -160,10 +167,10 @@ const EditServicesPage = () => {
               {astrologyServices.map((service) => (
                 <div
                   key={service.id}
-                  className="relative border border-grey p-4 h-16 flex items-center justify-center cursor-pointer hover:border-golden-glow group transition-colors"
+                  className="relative bg-emerald-green/50 capitalize border border-emerald-green p-4 h-16 flex items-center justify-center cursor-pointer hover:border-golden-glow group transition-colors"
                 >
-                  <span className="text-sm text-center pr-2">{service.title}</span>
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-1">
+                  <span className="text-sm text-center pr-2 group-hover:opacity-0 transition-opacity duration-200">{service.title}</span>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-1 p-2">
                     <button
                       onClick={() => handleEditService(service)}
                       className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 disabled:opacity-50"
@@ -200,10 +207,10 @@ const EditServicesPage = () => {
               {coachingServices.map((service) => (
                 <div
                   key={service.id}
-                  className="relative border border-grey p-4 h-16 flex items-center justify-center cursor-pointer hover:border-golden-glow group transition-colors"
+                  className="relative bg-emerald-green/50 capitalize border border-emerald-green p-4 h-16 flex items-center justify-center cursor-pointer hover:border-golden-glow group transition-colors"
                 >
-                  <span className="text-sm text-center pr-2">{service.title}</span>
-                  <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-all duration-200 flex gap-1">
+                  <span className="text-sm text-center pr-2 group-hover:opacity-0 transition-opacity duration-200">{service.title}</span>
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-all duration-200 flex items-center justify-center gap-1 p-2">
                     <button
                       onClick={() => handleEditService(service)}
                       className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1 rounded-full flex items-center gap-1 disabled:opacity-50"
@@ -311,6 +318,14 @@ const EditServicesPage = () => {
         </div>
       )}
     </div>
+  );
+};
+
+const EditServicesPage = () => {
+  return (
+    <Suspense fallback={<FullScreenLoader loading={true} />}>
+      <EditServicesContent />
+    </Suspense>
   );
 };
 

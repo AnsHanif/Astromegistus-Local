@@ -121,13 +121,13 @@ export default function SessionsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white">
             Coaching Session Orders
           </h1>
-          <p className="text-white/70 mt-2">
+          <p className="text-white/70 mt-2 text-sm sm:text-base">
             Manage and monitor coaching session bookings
           </p>
         </div>

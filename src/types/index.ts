@@ -12,3 +12,9 @@ export interface DialogProps {
   onClose: () => void;
   classNames?: CSSProperties;
 }
+
+export enum PURCHASED_PRODUCTS_TYPE {
+  INSTANT = 'instant',
+  SCHEDULED = 'scheduled',
+  COACHING = 'coaching',
+}

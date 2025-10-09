@@ -240,24 +240,35 @@ const BookingManagementPage = () => {
                       {session.status}
                     </span>
                     <span className="text-gray-400 text-xs md:text-sm">
-                      {session.selectedDate && session.selectedTime
-                        ? `${new Date(session.selectedDate).toLocaleDateString(
-                            'en-US',
-                            {
-                              month: 'short',
-                              day: 'numeric',
-                              year: 'numeric',
-                            }
-                          )} at ${session.selectedTime}${session.timezone ? ` (${session.timezone})` : ''}`
-                        : new Date(session.createdAt).toLocaleString('en-US', {
-                            timeZone: 'UTC',
+                      {session.scheduledStartTime && session.scheduledEndTime
+                        ? `${new Intl.DateTimeFormat('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric',
+                            timeZone: session.providerTimezone || 'UTC', // 👈 use provider/user timezone
+                          }).format(new Date(session.scheduledStartTime))}
+    at ${new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: session.providerTimezone || 'UTC', // 👈 use provider/user timezone
+    }).format(new Date(session.scheduledStartTime))}
+    - ${new Intl.DateTimeFormat('en-US', {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: session.providerTimezone || 'UTC', // 👈 use provider/user timezone
+    }).format(new Date(session.scheduledEndTime))}
+    ${session.providerTimezone ? ` (${session.providerTimezone})` : ''}`
+                        : new Intl.DateTimeFormat('en-US', {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
                             hour12: true,
-                          }) + ' UTC'}
+                            timeZone: session.providerTimezone || 'UTC', // 👈 use provider/user timezone
+                          }).format(new Date(session.createdAt))}
                     </span>
                   </div>
                 </div>
@@ -280,7 +291,7 @@ const BookingManagementPage = () => {
                     Prepare
                   </button>
 
-                  <button
+                  {/* <button
                     onClick={() => handleRescheduleClick(session)}
                     className="text-xs md:text-sm font-medium transition-colors flex items-center justify-center gap-2 w-[220px] h-[60px] bg-[#3f3f3f] relative overflow-hidden hover:opacity-80"
                   >
@@ -296,7 +307,7 @@ const BookingManagementPage = () => {
                         </span>
                       </div>
                     </div>
-                  </button>
+                  </button> */}
                 </div>
               </div>
             ))

@@ -41,10 +41,7 @@ export const useUploadProfileImage = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userProfile'] });
-      closeSnackbar();
-      enqueueSnackbar('Profile image uploaded successfully!', {
-        variant: 'success',
-      });
+      // Don't show success message here since useUpdateProfileImage will show the final success message
     },
     onError: (error: AxiosError) => {
       closeSnackbar();

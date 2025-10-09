@@ -49,6 +49,8 @@ export default function ImageUpload({
   useEffect(() => {
     if (currentImageUrl) {
       setPreviewUrl(currentImageUrl);
+    } else {
+      setPreviewUrl(null);
     }
   }, [currentImageUrl]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -187,26 +189,6 @@ export default function ImageUpload({
             />
             {!disabled && !isUploading && (
               <div className="absolute top-2 right-2 flex gap-1">
-                {showDeleteButton && onImageDelete && (
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="sm"
-                    className="h-6 w-6 p-0 rounded-full"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleDeleteImage();
-                    }}
-                    disabled={isDeleting}
-                    title="Delete image from server"
-                  >
-                    {isDeleting ? (
-                      <Loader2 className="h-3 w-3 animate-spin" />
-                    ) : (
-                      <X className="h-3 w-3" />
-                    )}
-                  </Button>
-                )}
                 <Button
                   type="button"
                   variant="destructive"

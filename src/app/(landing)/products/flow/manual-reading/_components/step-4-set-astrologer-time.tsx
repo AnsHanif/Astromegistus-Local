@@ -1,14 +1,14 @@
 import React, { FC, useState, useEffect } from 'react';
 import moment from 'moment';
 import { ManualReading } from './manual-reading.interfaces';
-import { CustomSelect } from '@/components/common/custom-select/custom-select';
-import { TIME_ZONES } from './manual-reading.constant';
 import { Button } from '@/components/ui/button';
 import CustomCalendar from '@/components/common/custom-calendar/custom-calendar';
-import { useTimeSlots } from '@/hooks/query/user-queries';
 import { useBooking } from '../../_components/booking-context';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import { useCreateBooking } from '@/hooks/mutation/booking-mutation/booking-mutation';
+import { useAvailableSlots } from '@/hooks/query/booking-queries';
+import { TIMEZONES, getUserTimezone } from '@/constants/timezones';
+import { CustomSelect } from '@/components/common/custom-select/custom-select';
 
 type ValuePiece = Date | null;
 type Value = ValuePiece | [ValuePiece, ValuePiece];
@@ -22,18 +22,18 @@ const Step4SetAstrologerTime: FC<Step4SetAstrologerTimeProps> = ({
   // Get booking context to access selected astrologer and create booking
   const { data: bookingData, updateData } = useBooking();
 
-  const [selectedTime, setSelectedTime] = useState<string | null>(
-    bookingData.selectedTime || null
-  );
+  const [selectedSlot, setSelectedSlot] = useState<{
+    startDateTimeUTC: string;
+    endDateTimeUTC: string;
+    displayStartTime: string;
+  } | null>(null);
   const [value, onChange] = useState<Value>(
     bookingData.selectedDate ? new Date(bookingData.selectedDate) : new Date()
   );
-  const [timezone, setTimezone] = useState(
-    bookingData.timezone || 'Pacific Time (UTC -8)'
-  );
   const [validationError, setValidationError] = useState('');
+  const [selectedTimezone, setSelectedTimezone] = useState<string>(getUserTimezone());
 
-  // Booking mutation
+  // Booking mutation (still using old API as it handles person details)
   const { mutateAsync: createBooking, isPending: isCreatingBooking } =
     useCreateBooking();
 
@@ -42,40 +42,40 @@ const Step4SetAstrologerTime: FC<Step4SetAstrologerTimeProps> = ({
     ? moment(value.toString()).format('YYYY-MM-DD')
     : '';
 
-  // Fetch time slots based on selected astrologer and date
+  // Fetch available slots using V2 API (considers product duration and timezone)
   const {
-    data: timeSlotsData,
+    data: slotsResponse,
     isLoading: isLoadingTimeSlots,
     error: timeSlotsError,
     refetch: refetchTimeSlots,
-  } = useTimeSlots(
+  } = useAvailableSlots(
     bookingData.selectedProvider || 'cmfmhsrkd0000zcjk94mevel9',
-    selectedDate
+    bookingData.productId, // productId
+    undefined, // sessionId
+    selectedDate,
+    selectedTimezone // Pass selected timezone
   );
 
-  const timeSlots = timeSlotsData?.data || [];
+  const timeSlots = slotsResponse?.data?.slots || [];
+  const displayTimezone = slotsResponse?.data?.timezone || 'UTC';
 
-  // Clear selected time when date changes
+  // Clear selected slot when date or timezone changes
   useEffect(() => {
-    setSelectedTime(null);
+    setSelectedSlot(null);
     setValidationError('');
-  }, [selectedDate]);
+  }, [selectedDate, selectedTimezone]);
 
   const handleNext = async () => {
-    if (!selectedTime) {
+    if (!selectedSlot) {
       setValidationError('Please select a time slot to continue');
       return;
     }
-    if (!timezone) {
-      setValidationError('Please select a timezone to continue');
-      return;
-    }
 
-    // Store time selection in context
+    // Store time selection in context for display purposes
     updateData({
       selectedDate: selectedDate,
-      selectedTime: selectedTime,
-      timezone: timezone,
+      selectedTime: selectedSlot.displayStartTime,
+      timezone: selectedTimezone,
     });
 
     // Format date and time for API
@@ -116,14 +116,19 @@ const Step4SetAstrologerTime: FC<Step4SetAstrologerTimeProps> = ({
             bookingData.minute,
             bookingData.timePeriod
           ),
-          placeOfBirth: bookingData.birthCountry,
+          placeOfBirth: bookingData.birthCountryLabel,
+          latitude: bookingData.latitude,
+          longitude: bookingData.longitude,
+          timezone: bookingData.timezone,
         },
       ],
       // Manual booking specific fields
       providerId: bookingData.selectedProvider ?? '',
       selectedDate: selectedDate,
-      selectedTime: selectedTime,
-      timezone: timezone,
+      selectedTime: selectedSlot.displayStartTime,
+      timezone: selectedTimezone,
+      itemId: bookingData.itemId,
+      // timezone: displayTimezone,
     };
 
     try {
@@ -139,7 +144,7 @@ const Step4SetAstrologerTime: FC<Step4SetAstrologerTimeProps> = ({
   return (
     <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="flex flex-col justify-evenly md:flex-row gap-10 w-full max-w-5xl">
-        {/* Left Side - Calendar (dummy for now) */}
+        {/* Left Side - Calendar */}
         <div>
           <h2 className="text-lg font-semibold mb-4">Pick A Time</h2>
           <div className="w-full flex items-center justify-center">
@@ -151,58 +156,69 @@ const Step4SetAstrologerTime: FC<Step4SetAstrologerTimeProps> = ({
           </div>
         </div>
 
-        {/* Right Side - Time Slots + Timezone */}
-        <div>
+        {/* Right Side - Time Slots */}
+        <div className="w-full md:w-1/2">
           <h2 className="text-lg font-semibold mb-4">
             Available Time Slots For{' '}
             {value ? moment(value.toString()).format('MMMM Do, YYYY') : ''}
           </h2>
 
-          {/* Time Slots Display */}
-          {isLoadingTimeSlots ? (
-            <div className="flex justify-center items-center py-8">
-              <SpinnerLoader />
-            </div>
-          ) : timeSlotsError ? (
-            <div className="text-center py-8">
-              <p className="text-red-500 mb-4">
-                Failed to load time slots. Please try again.
-              </p>
-              <Button
-                onClick={() => refetchTimeSlots()}
-                variant="outline"
-                size="sm"
-              >
-                Retry
-              </Button>
-            </div>
-          ) : timeSlots.length > 0 ? (
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              {timeSlots.map((slot, index: number) => (
+          {/* Time Slots Display with Fixed Height and Scroll */}
+          <div className="h-[400px] overflow-y-auto mb-6">
+            {isLoadingTimeSlots ? (
+              <div className="flex justify-center items-center h-full">
+                <SpinnerLoader />
+              </div>
+            ) : timeSlotsError ? (
+              <div className="text-center py-8">
+                <p className="text-red-500 mb-4">
+                  Failed to load time slots. Please try again.
+                </p>
                 <Button
-                  variant={'outline'}
-                  key={index}
-                  onClick={() => {
-                    setSelectedTime(slot.time);
-                    setValidationError(''); // Clear validation error when selecting
-                  }}
-                  className={`px-4 py-2 border cursor-pointer h-12 md:h-15 text-sm ${
-                    selectedTime === slot.time
-                      ? 'bg-green-800 text-white border-green-800'
-                      : 'border-gray-400 hover:bg-gray-100'
-                  }`}
+                  onClick={() => refetchTimeSlots()}
+                  variant="outline"
+                  size="sm"
                 >
-                  {slot.time}
+                  Retry
                 </Button>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">
-                No time slots available for this date.
-              </p>
-            </div>
-          )}
+              </div>
+            ) : timeSlots.length > 0 ? (
+              <div className="grid grid-cols-2 gap-3">
+                {timeSlots.map((slot, index: number) => {
+                  const isSelected =
+                    selectedSlot?.startDateTimeUTC === slot.startDateTimeUTC;
+
+                  return (
+                    <Button
+                      variant={'outline'}
+                      key={index}
+                      onClick={() => {
+                        setSelectedSlot({
+                          startDateTimeUTC: slot.startDateTimeUTC,
+                          endDateTimeUTC: slot.endDateTimeUTC,
+                          displayStartTime: slot.displayStartTime,
+                        });
+                        setValidationError('');
+                      }}
+                      className={`px-4 py-2 border cursor-pointer h-12 md:h-15 text-sm ${
+                        isSelected
+                          ? 'bg-green-800 text-white border-green-800'
+                          : 'border-gray-400 hover:bg-gray-100'
+                      }`}
+                    >
+                      {slot.displayStartTime} - {slot.displayEndTime}
+                    </Button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="text-center py-8">
+                <p className="text-gray-500">
+                  No time slots available for this date.
+                </p>
+              </div>
+            )}
+          </div>
 
           {/* Timezone Dropdown */}
           <div>
@@ -211,14 +227,17 @@ const Step4SetAstrologerTime: FC<Step4SetAstrologerTimeProps> = ({
             </label>
             <CustomSelect
               onSelect={(value) => {
-                setTimezone(value);
+                setSelectedTimezone(value);
                 setValidationError(''); // Clear validation error when selecting
               }}
-              options={TIME_ZONES}
+              options={TIMEZONES.map((tz) => ({
+                label: tz.label,
+                value: tz.value,
+              }))}
               size="sm"
               variant="default"
               placeholder="Select timezone"
-              selectedValue={timezone}
+              selectedValue={selectedTimezone}
               className="w-full h-12 sm:h-15"
               triggerClassName={`h-12 w-full text-size-secondary sm:h-15 cursor-pointer bg-transparent border-grey focus:border-black hover:border-black`}
               contentClassName="w-full max-h-60 overflow-y-auto"

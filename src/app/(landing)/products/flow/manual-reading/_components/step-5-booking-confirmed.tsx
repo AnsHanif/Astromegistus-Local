@@ -11,10 +11,12 @@ const Step5BookingConfirmed = () => {
     if (!bookingData.selectedDate || !bookingData.selectedTime) {
       return 'Date and time not available';
     }
-    
+
+    console.log(bookingData);
     const date = moment(bookingData.selectedDate);
     const time = bookingData.selectedTime;
     const timezone = bookingData.timezone || 'UTC';
+    console.log('time zone ', timezone);
     
     return `${date.format('MMM DD, YYYY')}, ${time} (${timezone})`;
   };

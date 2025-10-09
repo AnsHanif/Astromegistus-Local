@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 export default function AuthSelectionPage() {
   const router = useRouter();
   return (
-    <div className="flex h-full flex-col items-center justify-center space-y-8 md:space-y-12 text-center">
+    <div className="flex h-screen flex-col items-center justify-center space-y-8 md:space-y-12 text-center">
       {/* Title */}
       <div>
         <h1 className="text-size-heading md:text-size-primary font-bold">

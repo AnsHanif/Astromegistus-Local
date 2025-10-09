@@ -15,14 +15,14 @@ const FeatureDetailCard: FC<FeatureDetailCardProps> = ({ classNames }) => {
       </p>
 
       {/* Description */}
-      <p className="text-justify text-sm mb-4">
+      <p className="text-justify text-base mb-4">
         Full karmic-to-present arc incl. draconic, evolutionary, traditional +
         psychological charts, predictive cycles, fixed stars + 2 automated
         readings + 1 follow up live-session + 30 min coaching
       </p>
 
       {/* Duration */}
-      <div className="flex itme gap-2 text-sm mb-6">
+      <div className="flex itme gap-2 text-base mb-6">
         <Clock className="w-5 h-5" />
         <p className='mt-0.5'>120 min + 60 min prep</p>
       </div>

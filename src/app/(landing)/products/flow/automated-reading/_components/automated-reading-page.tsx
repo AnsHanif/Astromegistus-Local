@@ -12,9 +12,13 @@ import { Button } from '@/components/ui/button';
 import CustomCheckbox from '@/components/common/custom-checkbox/custom-checkbox';
 import ProductInfoHeader from '../../_components/product-info-header';
 import { Trash2, Loader2 } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
-import { useCreateBooking } from '@/hooks/mutation/booking-mutation/booking-mutation';
+import { useSearchParams, useRouter } from 'next/navigation';
+import {
+  useCheckLocation,
+  useCreateBooking,
+} from '@/hooks/mutation/booking-mutation/booking-mutation';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import { enqueueSnackbar } from 'notistack';
 
 type PersonForm = {
   fullName: string;
@@ -25,6 +29,8 @@ type PersonForm = {
   minute: string;
   timePeriod: string;
   birthCountry: string;
+  birthCountryLabel: string;
+  birthCity: string;
 };
 
 type AutomatedReadingForm = {
@@ -33,11 +39,19 @@ type AutomatedReadingForm = {
 
 const AutomatedReadingPage = () => {
   const [isChecked, setIsChecked] = useState(false);
+  const [locationData, setLocationData] = useState<{
+    lat: number;
+    lng: number;
+    tz: string;
+  } | null>(null);
   const MAX_PERSONS = 5;
   const searchParams = useSearchParams();
+  const router = useRouter();
+  const { mutate: checkLocationMutation, isPending: isCheckingLocation } =
+    useCheckLocation();
   const { mutate: createBookingMutation, isPending } = useCreateBooking();
-  const productId =
-    searchParams.get('productId') || 'cmfpjjcvr0006w6swrgonbbys';
+  const productId = searchParams.get('productId') || '';
+  const itemId = searchParams.get('itemId') || '';
 
   const methods = useForm<AutomatedReadingForm>({
     mode: 'onSubmit',
@@ -53,6 +67,8 @@ const AutomatedReadingPage = () => {
           minute: '',
           timePeriod: '',
           birthCountry: '',
+          birthCountryLabel: '',
+          birthCity: '',
         },
       ],
     },
@@ -74,6 +90,8 @@ const AutomatedReadingPage = () => {
         minute: '',
         timePeriod: '',
         birthCountry: '',
+        birthCountryLabel: '',
+        birthCity: '',
       });
     }
   };
@@ -81,6 +99,58 @@ const AutomatedReadingPage = () => {
   const removePerson = (index: number) => {
     if (fields.length > 1) {
       remove(index);
+    }
+  };
+
+  const checkLocationForPerson = (personIndex: number) => {
+    const person = methods.watch(`persons.${personIndex}`);
+    const { birthCountry, birthCity } = person;
+
+    // Only check if both country and city are provided
+    if (birthCountry && birthCity && birthCity.trim().length >= 2) {
+      checkLocationMutation(
+        {
+          cityName: birthCity.trim(),
+          countryID: birthCountry,
+        },
+        {
+          onSuccess: (response: any) => {
+            if (
+              response.exists &&
+              response.location &&
+              response.location.length > 0
+            ) {
+              const location = response.location[0]; // Get first location from array
+              const locationInfo = {
+                lat: location.lat,
+                lng: location.lng,
+                tz: location.tz,
+              };
+              setLocationData(locationInfo);
+
+              // Proceed with booking after storing location data
+              proceedWithBooking();
+            } else {
+              console.log('Location not found in external API');
+              enqueueSnackbar(
+                'Location not found. Please check your city and country.',
+                {
+                  variant: 'error',
+                }
+              );
+            }
+          },
+          onError: (error) => {
+            console.error('Location check failed:', error);
+            enqueueSnackbar('Failed to verify location. Please try again.', {
+              variant: 'error',
+            });
+          },
+        }
+      );
+    } else {
+      // No location to check, proceed directly with booking
+      proceedWithBooking();
     }
   };
 
@@ -104,7 +174,53 @@ const AutomatedReadingPage = () => {
     return `${formattedHour.toString().padStart(2, '0')}:${minute.padStart(2, '0')}`;
   };
 
-  const onSubmit = (data: AutomatedReadingForm) => {
+  const proceedWithBooking = () => {
+    const formData = methods.getValues();
+
+    // Transform form data to API format
+    const persons = formData.persons.map((person) => ({
+      fullName: person.fullName,
+      dateOfBirth: formatDateOfBirth(person.day, person.month, person.year),
+      timeOfBirth: formatTimeOfBirth(
+        person.hour,
+        person.minute,
+        person.timePeriod
+      ),
+      placeOfBirth: person.birthCountryLabel, // Use label for database
+      // Add location data if available
+      ...(locationData && {
+        latitude: locationData.lat,
+        longitude: locationData.lng,
+        timezone: locationData.tz,
+      }),
+    }));
+
+    // Filter out incomplete persons
+    const validPersons = persons.filter(
+      (person) => person.fullName && person.dateOfBirth
+    );
+
+    if (validPersons.length === 0) {
+      console.error('At least one complete person is required');
+      return;
+    }
+
+    createBookingMutation(
+      {
+        productId,
+        type: 'AUTOMATED',
+        persons: validPersons,
+        itemId: itemId,
+      },
+      {
+        onSuccess: () => {
+          router.push('/products/flow/automated-reading-ready');
+        },
+      }
+    );
+  };
+
+  const onSubmit = async (data: AutomatedReadingForm) => {
     if (!productId) {
       console.error('Product ID is required');
       return;
@@ -169,36 +285,26 @@ const AutomatedReadingPage = () => {
         });
         hasError = true;
       }
+
+      // Check city of birth
+      if (!person.birthCity || person.birthCity.trim().length < 2) {
+        console.log('Setting city error for person', personIndex);
+        methods.setError(`persons.${personIndex}.birthCity`, {
+          type: 'required',
+          message:
+            'City of birth is required and must be at least 2 characters',
+        });
+        hasError = true;
+      }
     });
 
     // Only proceed with API call if no validation errors
-    // Transform form data to API format
-    const persons = data.persons.map((person) => ({
-      fullName: person.fullName,
-      dateOfBirth: formatDateOfBirth(person.day, person.month, person.year),
-      timeOfBirth: formatTimeOfBirth(
-        person.hour,
-        person.minute,
-        person.timePeriod
-      ),
-      placeOfBirth: person.birthCountry,
-    }));
-
-    // Filter out incomplete persons
-    const validPersons = persons.filter(
-      (person) => person.fullName && person.dateOfBirth
-    );
-
-    if (validPersons.length === 0) {
-      console.error('At least one complete person is required');
+    if (hasError) {
       return;
     }
 
-    createBookingMutation({
-      productId,
-      type: 'AUTOMATED',
-      persons: validPersons,
-    });
+    // Check location first, then proceed with booking
+    checkLocationForPerson(0);
   };
 
   return (
@@ -353,9 +459,19 @@ const AutomatedReadingPage = () => {
                         <CustomSelect
                           onSelect={(value: string) => {
                             console.log(`Country selected: ${value}`);
+
+                            // Find the selected country option to get both value and label
+                            const selectedCountry = PLACE_OF_BIRTH_OPTIONS.find(
+                              (option) => option.value === value
+                            );
+
                             methods.setValue(
                               `persons.${index}.birthCountry`,
                               value
+                            );
+                            methods.setValue(
+                              `persons.${index}.birthCountryLabel`,
+                              selectedCountry?.label || value
                             );
                             methods.trigger(`persons.${index}.birthCountry`);
 
@@ -389,12 +505,48 @@ const AutomatedReadingPage = () => {
                       </div>
                     </div>
                   </div>
+
+                  <div className="flex flex-col items-start md:flex-row gap-6">
+                    <div className="w-full">
+                      <FormInput
+                        label="City Of Birth"
+                        name={`persons.${index}.birthCity`}
+                        type="text"
+                        placeholder="Enter City Name"
+                        className="w-full"
+                        rules={{
+                          required: 'City of birth is required',
+                          validate: (value) =>
+                            value.trim().length >= 2 ||
+                            'City name must be at least 2 characters long.',
+                          maxLength: {
+                            value: 50,
+                            message:
+                              'City name must be at most 50 characters long.',
+                          },
+                        }}
+                      />
+
+                      {/* City of Birth Error Display */}
+                      {methods.formState.errors.persons?.[index]?.birthCity && (
+                        <p className="text-red-500 text-sm mt-2">
+                          {
+                            methods.formState.errors.persons[index]?.birthCity
+                              ?.message
+                          }
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Date of Birth with proper validation */}
+                    <p className="w-full"></p>
+                  </div>
                 </div>
               </div>
             ))}
 
             {/* Add another person button */}
-            {fields.length < MAX_PERSONS && (
+            {/* {fields.length < MAX_PERSONS && (
               <Button
                 type="button"
                 variant="outline"
@@ -409,7 +561,7 @@ const AutomatedReadingPage = () => {
               <div className="text-center text-gray-500 text-sm mb-10">
                 Maximum of {MAX_PERSONS} persons allowed
               </div>
-            )}
+            )} */}
 
             <div className="flex flex-col md:flex-row gap-4 md:gap-8">
               <Button
@@ -423,9 +575,9 @@ const AutomatedReadingPage = () => {
                 type="submit"
                 variant="outline"
                 className="bg-emerald-green hover:bg-emerald-green/90 md:max-w-[10rem] w-full px-2 text-white disabled:opacity-50"
-                disabled={isPending}
+                disabled={isPending || isCheckingLocation}
               >
-                {isPending ? <SpinnerLoader /> : 'Next'}
+                {isPending || isCheckingLocation ? <SpinnerLoader /> : 'Next'}
               </Button>
             </div>
           </form>

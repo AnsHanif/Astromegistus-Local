@@ -26,15 +26,15 @@ const ProductHighlightSection: FC<ProductHighlightSectionProps> = ({
         {/* Left content */}
         <div className="flex-1 space-y-4 md:mt-12 h-full">
           {/* <div className="flex-1 space-y-4 md:mt-12 h-full"> */}
-          <h2 className="text-size-heading md:text-size-primary font-bold text-gray-900 leading-snug">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-900 leading-snug">
             {title}
           </h2>
           <p className="bg-gradient-to-r inline-block content-center from-golden-glow via-pink-shade to-golden-glow-dark px-3 text-sm font-medium py-1">
             {badge}
           </p>
-          <p className="text-gray-700 text-sm leading-relaxed">{description}</p>
+          <p className="text-gray-700 text-base leading-relaxed">{description}</p>
 
-          <div className="flex items-center gap-2 text-gray-600 text-sm">
+          <div className="flex items-center gap-2 text-gray-600 text-base">
             <Clock className="w-4 h-4" />
             <span>{time}</span>
           </div>
@@ -42,12 +42,19 @@ const ProductHighlightSection: FC<ProductHighlightSectionProps> = ({
 
         {/* Right image */}
         <div className="max-w-[440px] self-center relative h-[400px] md:h-[500px] w-full">
-          <Image
-            src={image}
-            alt="Section image"
-            fill
-            className="object-cover"
-          />
+          {image && image !== '' ? (
+            <Image
+              src={image}
+              alt="Section image"
+              fill
+              sizes="(max-width: 768px) 100vw, 440px"
+              className="object-cover"
+            />
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-500">No image available</span>
+            </div>
+          )}
         </div>
       </div>
 

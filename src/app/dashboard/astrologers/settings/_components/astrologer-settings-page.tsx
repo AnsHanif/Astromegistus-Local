@@ -12,7 +12,7 @@ export default function AstrologerSettingsPage() {
   const router = useRouter();
 
   const handleConfirmLogout = () => {
-    Cookies.remove('temp-tk-astro');
+    Cookies.remove('astro-tk');
     router.push('/login');
   };
 

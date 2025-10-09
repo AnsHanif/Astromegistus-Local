@@ -6,8 +6,9 @@ interface ProductQueryParams {
   filters?: {
     category?: string;
     productType?: string;
-    productPrice?: string;
-    timeDuration?: string;
+    minPrice?: string;
+    maxPrice?: string;
+    duration?: string;
   };
   limit?: number;
 }
@@ -15,15 +16,20 @@ interface ProductQueryParams {
 export const useGetAllProducts = (params: ProductQueryParams = {}) => {
   const { search = '', filters = {}, limit = 4 } = params;
 
+  // Filter out empty/undefined values from filters
+  const cleanFilters = Object.fromEntries(
+    Object.entries(filters).filter(([_, value]) => value && value !== '')
+  );
+
   return useInfiniteQuery({
-    queryKey: ['user-products', { search, ...filters, limit }],
+    queryKey: ['user-products', { search, ...cleanFilters, limit }],
     initialPageParam: 1,
     queryFn: async ({ pageParam = 1 }) => {
       const response = await productAPI.getAllProducts({
         page: pageParam as number,
         limit,
         search,
-        ...filters,
+        ...cleanFilters,
       });
       return response.data?.data;
     },
@@ -44,5 +50,7 @@ export const useGetProductDetial = (id: string) => {
       return response?.data?.data;
     },
     enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
   });
 };

@@ -42,7 +42,7 @@ export default function AstrologyNewsPage() {
     <div className="min-h-screen bg-white font-default">
       {/* Page Title */}
       <div className="text-center py-6 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-black px-4">
+        <h1 className="text-5xl font-bold text-black px-4">
           Astromegistus News
         </h1>
       </div>
@@ -67,11 +67,11 @@ export default function AstrologyNewsPage() {
           {featuredArticle && (
             <div className="relative z-10 h-full flex items-end p-4 sm:p-6 md:p-8 lg:p-12">
               <div className="text-white max-w-full sm:max-w-md">
-                <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold mb-2 sm:mb-4">
+                <h2 className="text-2xl md:text-3xl font-bold mb-2 sm:mb-4">
                   {featuredArticle.title}
                 </h2>
-                
-                <p className="text-xs sm:text-sm md:text-base opacity-90 leading-relaxed">
+
+                <p className="text-base opacity-90 leading-relaxed">
                   {featuredArticle.description}
                 </p>
               </div>
@@ -96,11 +96,11 @@ export default function AstrologyNewsPage() {
               {/* Article Content - Overlay on Image */}
               <div className="absolute inset-0 flex flex-col justify-end p-3 sm:p-4">
                 <div className="text-white">
-                  <h3 className="text-base sm:text-lg font-bold mb-1 sm:mb-2">
+                  <h3 className="text-xl md:text-2xl font-bold mb-1 sm:mb-2">
                     {article.title}
                   </h3>
-                  
-                  <p className="text-xs sm:text-sm leading-relaxed opacity-90 line-clamp-3">
+
+                  <p className="text-base leading-relaxed opacity-90 line-clamp-3">
                     {article.description}
                   </p>
                 </div>

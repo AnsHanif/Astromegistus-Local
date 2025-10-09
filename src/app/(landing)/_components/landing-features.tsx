@@ -1,26 +1,29 @@
+'use client';
+
 import Image from 'next/image';
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import { Clock } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import KeyFeaturesCard from '../products/flow/_components/key-features-card';
 
 const LandingFeatures = () => {
+  const router = useRouter();
+  
   return (
     <section className="w-full flex flex-col items-center text-center px-4 sm:px-12 py-10">
-      <h2 className="text-size-heading md:text-size-primary font-medium mb-6">
+      <h2 className="text-2xl md:text-3xl font-medium mb-6">
         Soul =&gt; life path =&gt; current situation =&gt; path forward
       </h2>
 
       <div className="relative w-fullw w-full h-[400px]">
-        <Image
-          src={'/product-features.png'}
+        <img
+          src="/product-features.png"
           alt="Banner"
-          fill
-          priority
-          className="object-contain md:object-cover object-center"
+          className="w-full h-full object-contain md:object-cover object-center"
         />
       </div>
 
@@ -69,7 +72,10 @@ const LandingFeatures = () => {
         For our entire product selection click the "readings" button!
       </p>
 
-      <Button className="xs:max-w-[300px] w-full m-auto my-4 flex items-center justify-center gap-3">
+      <Button 
+        className="xs:max-w-[300px] w-full m-auto my-4 flex items-center justify-center gap-3"
+        onClick={() => router.push('/products')}
+      >
         Readings
         <FontAwesomeIcon icon={faArrowRight} />
       </Button>

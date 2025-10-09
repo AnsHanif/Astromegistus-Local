@@ -11,11 +11,12 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
   const adminLoginMutation = useAdminLogin();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    adminLoginMutation.mutate({ email, password });
+    adminLoginMutation.mutate({ email, password, rememberMe });
   };
 
   const togglePasswordVisibility = () => {
@@ -36,28 +37,28 @@ export default function AdminLoginPage() {
 
       {/* Login Form */}
       <div className="relative z-10 w-full max-w-md mx-4">
-        <Card className="bg-white/10 border-white/20 shadow-2xl">
-          <CardHeader className="text-center pb-8">
+        <Card className="bg-white/10 border-white/20 shadow-2xl backdrop-blur-sm rounded-xl">
+          <CardHeader className="text-center pb-6 px-6 pt-6">
             <div className="flex justify-center mb-4">
-              <div className="w-16 h-16 bg-golden-glow rounded-full flex items-center justify-center">
+              <div className="w-16 h-16 bg-golden-glow rounded-full flex items-center justify-center shadow-lg">
                 <Shield className="h-8 w-8 text-black" />
               </div>
             </div>
-            <CardTitle className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+            <CardTitle className="text-2xl font-bold text-white flex items-center justify-center gap-2 mb-2">
               <Shield className="h-6 w-6 text-golden-glow" />
               Admin Login
             </CardTitle>
-            <p className="text-white/70 mt-2">
+            <p className="text-white/70">
               Access the Astromegistus Admin Panel
             </p>
           </CardHeader>
 
-          <CardContent>
+          <CardContent className="px-6 pb-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-2">
                 <label
                   htmlFor="email"
-                  className="text-sm font-medium text-white/90"
+                  className="text-sm font-medium text-white/90 block"
                 >
                   Admin Email
                 </label>
@@ -66,16 +67,16 @@ export default function AdminLoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="admin@astromegistus.com"
+                  placeholder="Enter your email"
                   required
-                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20"
+                  className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 h-11 px-4 rounded-lg"
                 />
               </div>
 
               <div className="space-y-2">
                 <label
                   htmlFor="password"
-                  className="text-sm font-medium text-white/90"
+                  className="text-sm font-medium text-white/90 block"
                 >
                   Password
                 </label>
@@ -87,7 +88,7 @@ export default function AdminLoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
-                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 pr-10"
+                    className="bg-white/5 border-white/20 text-white placeholder:text-white/50 focus:border-golden-glow focus:ring-golden-glow/20 pr-12 h-11 px-4 rounded-lg"
                   />
                   <button
                     type="button"
@@ -95,20 +96,26 @@ export default function AdminLoginPage() {
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition-colors"
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4" />
-                    ) : (
                       <Eye className="h-4 w-4" />
+                    ) : (
+                      <EyeOff className="h-4 w-4" />
                     )}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center">
-                <label className="flex items-center gap-2 text-sm text-white/70">
-                  <input
-                    type="checkbox"
-                    className="rounded border-white/20 bg-white/5 text-golden-glow focus:ring-golden-glow/20"
-                  />
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 text-golden-glow bg-white/5 border-white/20 rounded focus:ring-golden-glow focus:ring-2"
+                />
+                <label
+                  htmlFor="rememberMe"
+                  className="text-sm text-white/90 cursor-pointer"
+                >
                   Remember me
                 </label>
               </div>
@@ -116,7 +123,7 @@ export default function AdminLoginPage() {
               <Button
                 type="submit"
                 disabled={adminLoginMutation.isPending}
-                className="w-full bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black font-semibold hover:from-golden-glow/90 hover:via-pink-shade/90 hover:to-golden-glow-dark/90 disabled:opacity-50"
+                className="w-full bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black font-semibold hover:from-golden-glow/90 hover:via-pink-shade/90 hover:to-golden-glow-dark/90 disabled:opacity-50 h-11 rounded-lg mt-6"
               >
                 {adminLoginMutation.isPending ? (
                   <div className="flex items-center gap-2">

@@ -42,20 +42,8 @@ const EditPasswordPage = () => {
     <>
       <FullScreenLoader loading={updatePasswordMutation.isPending} />
       <FormProvider {...methods}>
-        <div className="min-h-screen bg-black text-white">
+        <div className="min-h-screen">
         <div className="w-full p-6">
-          {/* Header */}
-          <div className="flex items-center gap-3 mb-6">
-            <ChevronLeft 
-              className="w-5 h-5 cursor-pointer hover:bg-gray-700 rounded p-1"
-              onClick={handleBack}
-            />
-            <div>
-              <h1 className="text-xl font-bold">Edit Password</h1>
-              <p className="text-gray-400 text-xs">Customize your experience and preferences</p>
-            </div>
-          </div>
-
           <form onSubmit={methods.handleSubmit(onSubmit)}>
             {/* Password Form */}
             <div className="space-y-4 mb-6">

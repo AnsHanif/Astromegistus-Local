@@ -56,7 +56,8 @@ const Step4BookingConfirmed: FC = () => {
         <div className="flex flex-col xs:flex-row justify-between xs:gap-2">
           <span className="font-semibold w-32">Coach:</span>
           <span className="text-gray-900">
-            {bookingData.selectedProviderName || 'Coach information not available'}
+            {bookingData.selectedProviderName ||
+              'Coach information not available'}
           </span>
         </div>
 
@@ -73,6 +74,15 @@ const Step4BookingConfirmed: FC = () => {
             <span className="font-semibold w-32">Booking ID:</span>
             <span className="text-gray-900 font-mono text-sm">
               {bookingData.bookingId}
+            </span>
+          </div>
+        )}
+
+        {bookingData.notes && (
+          <div className="flex flex-col xs:flex-row justify-between xs:gap-2">
+            <span className="font-semibold w-32">Notes:</span>
+            <span className="text-gray-900 text-right">
+              {bookingData.notes}
             </span>
           </div>
         )}

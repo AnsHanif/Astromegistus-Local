@@ -225,6 +225,7 @@ export default function EditProfilePage() {
               type="email"
               placeholder="Enter your email"
               className="w-full focus:ring-golden-glow"
+              disabled={true}
               rules={{
                 required: 'Email is required',
                 pattern: {

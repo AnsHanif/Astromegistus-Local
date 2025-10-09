@@ -23,7 +23,10 @@ export default function SettingsPage() {
 
   const handleConfirmLogout = () => {
     Cookies.remove('astro-tk');
+    Cookies.remove('temp-nutk-astro');
     localStorage.removeItem('role');
+    localStorage.removeItem('cart');
+    localStorage.removeItem('final-cart');
     dispatch(clearCurrentUser());
     queryClient.clear();
     window.location.href = '/';
@@ -109,7 +112,7 @@ export default function SettingsPage() {
         btn1Title="Log Out"
         btn2Title="Cancel"
         iconType="logout"
-        classNames="!bg-black text-white"
+        classNames="!bg-[#212121] text-white"
         onSubmit={handleConfirmLogout}
       />
     </div>

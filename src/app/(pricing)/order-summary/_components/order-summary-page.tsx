@@ -197,11 +197,12 @@ const OrderSummaryPage = () => {
             )}
 
             {selected === 'paypal' && (
-              <PaypalPaymentForm
-                isLoading={isLoading}
-                setIsLoading={setIsLoading}
-                selectPlan={plan === 'annual' ? annualPlan : monthlyPlan}
-              />
+              // <PaypalPaymentForm
+              //   isLoading={isLoading}
+              //   setIsLoading={setIsLoading}
+              //   selectPlan={plan === 'annual' ? annualPlan : monthlyPlan}
+              // />
+              <div className="my-5">Not available right now</div>
             )}
           </div>
         </div>

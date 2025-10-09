@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { adminCoachingAPI } from '@/services/api/coaching-api';
+import { adminCoachingAPI, coachingAPI } from '@/services/api/coaching-api';
 import {
   CreateCoachingSessionRequest,
   CreateCoachingSessionWithImageRequest,
@@ -172,4 +172,19 @@ export const useDisableCoachingSession = () => {
   });
 };
 
-// Booking mutations removed for now
+// Coaching Astrologer Mutation - calls POST /coaching/sessions/${sessionId}/astrologer
+export const useCoachingAstrologer = () => {
+  return useMutation({
+    mutationFn: (sessionId: string) =>
+      coachingAPI.getAstrologerForSession(sessionId),
+    onSuccess: (data) => {
+      console.log(
+        'Successfully fetched astrologer for coaching session:',
+        data
+      );
+    },
+    onError: (error: any) => {
+      console.error('Error fetching astrologer for coaching session:', error);
+    },
+  });
+};

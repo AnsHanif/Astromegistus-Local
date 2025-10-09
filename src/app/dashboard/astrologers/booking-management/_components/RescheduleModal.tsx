@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import FullScreenLoader from '@/components/common/full-screen-loader';
+import { CustomDatePicker, CustomTimePicker } from '@/components/common';
 
 interface SessionDetails {
   id: string;
@@ -144,30 +145,19 @@ const RescheduleModal: React.FC<RescheduleModalProps> = ({
 
               {/* New Date and Time Selection */}
               <div className="space-y-4 sm:space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    New Date
-                  </label>
-                  <input
-                    type="date"
-                    value={newDate}
-                    onChange={(e) => setNewDate(e.target.value)}
-                    min={new Date().toISOString().split('T')[0]}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded text-white text-sm focus:outline-none border border-grey bg-transparent touch-manipulation [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                  />
-                </div>
+                <CustomDatePicker
+                  label="New Date"
+                  value={newDate}
+                  onChange={setNewDate}
+                  placeholder="Pick a new date"
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-white mb-2">
-                    New Time
-                  </label>
-                  <input
-                    type="time"
-                    value={newTime}
-                    onChange={(e) => setNewTime(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded text-white text-sm focus:outline-none [color-scheme:dark] border border-grey bg-transparent touch-manipulation [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-inner-spin-button]:hidden [&::-webkit-outer-spin-button]:hidden"
-                  />
-                </div>
+                <CustomTimePicker
+                  label="New Time"
+                  value={newTime}
+                  onChange={setNewTime}
+                  placeholder="Pick a new time"
+                />
 
                 <div>
                   <label className="block text-sm font-medium text-white mb-2">

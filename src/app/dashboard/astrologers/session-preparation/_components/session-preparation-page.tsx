@@ -49,7 +49,7 @@ const SessionPreparationPage = ({ bookingId }: SessionPreparationPageProps) => {
     data: sessionData,
     isLoading,
     error,
-  } = useSessionPreparation(bookingId || '', !!bookingId);
+  } = useSessionPreparation(bookingId || '', undefined, !!bookingId);
 
   const saveNotesMutation = useSavePreparationNotes();
   const uploadMaterialMutation = useUploadSessionMaterial();

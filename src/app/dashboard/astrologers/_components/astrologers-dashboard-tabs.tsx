@@ -31,7 +31,7 @@ export default function AstrologersDashboardTabs({
       icon: Calendar,
     },
     {
-      label: 'Past Sessions',
+      label: 'Earning Overview',
       href: '/dashboard/astrologers/past-sessions',
       icon: FileText,
     },

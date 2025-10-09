@@ -19,21 +19,27 @@ const CoachingDescription: FC<CoachingDescriptionProps> = ({
     <section>
       {/* Full-width image */}
       <div className="relative h-[300px] md:h-[513px] w-full mb-8">
-        <Image src={image} alt="Section image" fill className="object-cover" />
+        {image && image !== '' ? (
+          <Image src={image} alt="Section image" fill className="object-cover" />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-500">No image available</span>
+          </div>
+        )}
       </div>
 
       {/* Centered title */}
-      <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-12">
+      <h2 className="text-2xl md:text-3xl font-bold text-gray-900 text-center mb-12">
         {title}
       </h2>
 
       {/* Service Description Section */}
       <div className="">
-        <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-6">
+        <h3 className="text-xl md:text-2xl font-bold text-gray-900 mb-6">
           Service Description
         </h3>
         <div className="space-y-4 text-gray-700 leading-relaxed">
-          <p>{description}</p>
+          <p className="text-base">{description}</p>
         </div>
       </div>
     </section>

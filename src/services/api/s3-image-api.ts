@@ -1,5 +1,6 @@
 import axiosInstance from '../axios';
 import adminAxiosInstance from '../admin-axios';
+import publicAxiosInstance from '../public-axios';
 
 // Types for S3 image operations
 export interface PresignedUrlResponse {
@@ -36,8 +37,41 @@ export interface ImageDeleteResponse {
   };
 }
 
+export interface IntroVideosResponse {
+  success: boolean;
+  message: string;
+  data: {
+    videos: {
+      coaching: {
+        name: string;
+        url: string;
+        type: string;
+        size: string;
+      };
+      reading: {
+        name: string;
+        url: string;
+        type: string;
+        size: string;
+      };
+      welcome: {
+        name: string;
+        url: string;
+        type: string;
+        size: string;
+      };
+    };
+    expiresIn: number;
+    note: string;
+  };
+}
+
 // S3 Image API functions
 export const s3ImageAPI = {
+  // Intro Videos Endpoint (without token)
+  getIntroVideos: () =>
+    publicAxiosInstance.get<IntroVideosResponse>('/images/intro-videos'),
+
   // User Profile Picture Endpoints
   getUserProfilePresignedUrl: () =>
     axiosInstance.get<PresignedUrlResponse>('/images/profile'),
@@ -134,6 +168,33 @@ export const s3ImageAPI = {
 
   deleteProfileImageByKey: (imageKey: string) =>
     axiosInstance.delete<{
+      success: boolean;
+      message: string;
+      data: {
+        imageKey: string;
+      };
+    }>(`/images/profile/key/${encodeURIComponent(imageKey)}`),
+
+  // Admin Profile Image Key-based Endpoints
+  uploadAdminProfileImageKey: (file: File) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return adminAxiosInstance.post<{
+      success: boolean;
+      message: string;
+      data: {
+        imageKey: string;
+        type: string;
+      };
+    }>('/images/profile/key', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
+
+  deleteAdminProfileImageByKey: (imageKey: string) =>
+    adminAxiosInstance.delete<{
       success: boolean;
       message: string;
       data: {

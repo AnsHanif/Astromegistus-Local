@@ -7,8 +7,8 @@ import FeatureDetailCard from './feature-detail-card';
 const ProductFeatures = () => {
   return (
     <section className="w-full flex flex-col items-center text-center">
-      <h2 className="text-size-heading md:text-size-primary font-medium mt-10 mb-6">
-        Soul =&gt; life path =&gt; current situation =&gt; path forward
+      <h2 className="text-2xl md:text-3xl font-medium mt-10 mb-6">
+        The Astromegistus Reading – Soul-to-Current-Moment Reading
       </h2>
 
       {/* Banner Image */}
@@ -17,6 +17,7 @@ const ProductFeatures = () => {
           src={'/product-features.png'}
           alt="Banner"
           fill
+          sizes="100vw"
           priority
           className="object-cover"
         />

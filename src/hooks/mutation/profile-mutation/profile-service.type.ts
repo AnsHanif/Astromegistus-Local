@@ -19,6 +19,11 @@ export type UpdatePassword = {
 export type UpdateAstrologerProfile = {
   name: string;
   email: string;
+  timeZone?: string;
+};
+
+export type UpdateProfilePicture = {
+  profilePictureKey: string;
 };
 
 export type AstrologerProfileResponse = {
@@ -51,4 +56,20 @@ export type UserProfile = {
   timeOfBirth: string | null;
   createdAt: string;
   updatedAt: string;
+  timeZone?: string;
+  astrologyCategories?: string[];
+  coachingCategories?: string[];
+};
+
+export type UpdateCategories = {
+  astrologyCategories?: string[];
+  coachingCategories?: string[];
+};
+
+export type CancelSubscriptionForm = {
+  subscriptionId: string;
+};
+
+export type StripeChangePlanForm = {
+  planId: string;
 };

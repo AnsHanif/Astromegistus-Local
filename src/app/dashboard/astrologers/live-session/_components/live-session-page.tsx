@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useSessionPreparation } from '@/hooks/query/booking-queries';
+import { useSavePreparationNotes } from '@/hooks/mutation/booking-mutation/booking-mutation';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import MeetingTimeDisplay from '@/components/meeting/MeetingTimeDisplay';
+import { Save } from 'lucide-react';
+import { enqueueSnackbar } from 'notistack';
 
 interface LiveSessionPageProps {
   bookingId?: string;
@@ -23,7 +27,75 @@ const LiveSessionPage = ({ bookingId }: LiveSessionPageProps) => {
     data: sessionData,
     isLoading,
     error,
-  } = useSessionPreparation(bookingId || '', !!bookingId);
+  } = useSessionPreparation(bookingId || '', undefined, !!bookingId);
+
+  // Save notes mutation
+  const saveNotesMutation = useSavePreparationNotes();
+
+  // Load existing notes from session data
+  useEffect(() => {
+    if (sessionData?.data?.notes) {
+      setSessionNotes(sessionData.data.notes);
+    }
+  }, [sessionData]);
+
+  // Check if it's meeting time (when scheduled time is reached)
+  const isMeetingTime = useMemo(() => {
+    if (!sessionData?.data?.selectedDate || !sessionData?.data?.selectedTime)
+      return false;
+
+    try {
+      // Parse the selected date (ISO string)
+      const dateObj = new Date(sessionData.data.selectedDate);
+
+      // Extract date parts
+      const year = dateObj.getFullYear();
+      const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const day = String(dateObj.getDate()).padStart(2, '0');
+
+      // Parse time (12-hour format)
+      const timeStr = sessionData.data.selectedTime.trim();
+      const isPM = timeStr.includes('PM');
+      const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
+
+      if (!timeMatch) return false;
+
+      let hours = parseInt(timeMatch[1]);
+      const minutes = parseInt(timeMatch[2]);
+
+      // Convert to 24-hour format
+      if (isPM && hours !== 12) {
+        hours += 12;
+      } else if (!isPM && hours === 12) {
+        hours = 0;
+      }
+
+      // Create meeting datetime
+      const meetingDateTime = new Date(
+        `${year}-${month}-${day}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`
+      );
+
+      // Apply timezone offset if provided (simplified for Pacific Time UTC -8)
+      if (
+        sessionData.data.timezone &&
+        sessionData.data.timezone.includes('UTC -8')
+      ) {
+        meetingDateTime.setHours(meetingDateTime.getHours() + 8);
+      }
+
+      const now = new Date();
+
+      // Meeting is ready when scheduled time is reached
+      return now >= meetingDateTime;
+    } catch (error) {
+      console.error('Error parsing meeting time:', error);
+      return false;
+    }
+  }, [
+    sessionData?.data?.selectedDate,
+    sessionData?.data?.selectedTime,
+    sessionData?.data?.timezone,
+  ]);
 
   // Countdown effect
   useEffect(() => {
@@ -33,34 +105,81 @@ const LiveSessionPage = ({ bookingId }: LiveSessionPageProps) => {
     const interval = setInterval(() => {
       const now = new Date();
 
-      // Extract date part from selectedDate (which comes as full datetime)
-      const dateStr = sessionData?.data?.selectedDate?.split('T')[0]; // Gets "2025-09-18"
-      const timeStr = sessionData?.data?.selectedTime; // Gets "22:40"
+      try {
+        // Parse the selected date (ISO string)
+        const dateObj = new Date(sessionData.data.selectedDate!);
 
-      // Combine properly: YYYY-MM-DD + T + HH:MM
-      const scheduledTime = new Date(`${dateStr}T${timeStr}:00`);
-      console.log('Scheduled time:', scheduledTime);
-      console.log('Current time:', now);
+        // Extract date parts
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
 
-      const timeDiff = scheduledTime.getTime() - now.getTime();
+        // Parse time (12-hour format like "5:00 PM")
+        const timeStr = sessionData.data.selectedTime?.trim() || '';
+        const isPM = timeStr.includes('PM');
+        const timeMatch = timeStr.match(/(\d{1,2}):(\d{2})/);
 
-      if (timeDiff <= 0) {
-        setCountdown('0:00');
-        setSessionStatus('ready');
-        clearInterval(interval);
-      } else {
-        const hours = Math.floor(timeDiff / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60));
-        const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
-
-        if (hours > 0) {
-          setCountdown(
-            `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
-          );
-        } else {
-          setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+        if (!timeMatch) {
+          setCountdown('Invalid Time');
+          return;
         }
-        setSessionStatus('waiting');
+
+        let hours = parseInt(timeMatch[1]);
+        const minutes = parseInt(timeMatch[2]);
+
+        // Convert to 24-hour format
+        if (isPM && hours !== 12) {
+          hours += 12;
+        } else if (!isPM && hours === 12) {
+          hours = 0;
+        }
+
+        // Create meeting datetime
+        const scheduledTime = new Date(
+          `${year}-${month}-${day}T${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:00`
+        );
+
+        // Apply timezone offset if provided (simplified for Pacific Time UTC -8)
+        if (
+          sessionData.data.timezone &&
+          sessionData.data.timezone.includes('UTC -8')
+        ) {
+          scheduledTime.setHours(scheduledTime.getHours() + 8);
+        }
+
+        console.log('Scheduled time:', scheduledTime);
+        console.log('Current time:', now);
+
+        const timeDiff = scheduledTime.getTime() - now.getTime();
+
+        if (timeDiff <= 0) {
+          setCountdown('0:00');
+          setSessionStatus('ready');
+          clearInterval(interval);
+        } else {
+          const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+          const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+          const minutes = Math.floor(
+            (timeDiff % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const seconds = Math.floor((timeDiff % (1000 * 60)) / 1000);
+
+          if (days > 0) {
+            setCountdown(
+              `${days}d ${hours}h ${minutes}m ${seconds}s`
+            );
+          } else if (hours > 0) {
+            setCountdown(
+              `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+            );
+          } else {
+            setCountdown(`${minutes}:${seconds.toString().padStart(2, '0')}`);
+          }
+          setSessionStatus('waiting');
+        }
+      } catch (error) {
+        console.error('Error parsing time for countdown:', error);
+        setCountdown('Error');
       }
     }, 1000);
 
@@ -71,23 +190,31 @@ const LiveSessionPage = ({ bookingId }: LiveSessionPageProps) => {
     router.back();
   };
 
-  const handleStartSession = () => {
-    setSessionStatus('started');
-    // In a real app, this would connect to video calling service
-    console.log('Starting live session...');
-    alert('Live session started! Client will be notified to join.');
+  const handleJoinMeeting = () => {
+    if (sessionData?.data?.meetingLink) {
+      // Open meeting link in new tab
+      window.open(sessionData.data.meetingLink, '_blank');
+    } else {
+      alert('Meeting link not available');
+    }
   };
 
-  const handleSaveNotes = () => {
-    if (bookingId && sessionNotes.trim()) {
-      // TODO: Integrate with API to save notes to the booking
-      // For now, save to localStorage as fallback
-      localStorage.setItem(`liveSessionNotes_${bookingId}`, sessionNotes);
-    } else {
-      localStorage.setItem('liveSessionNotes', sessionNotes);
+  const handleSaveNotes = async () => {
+    if (!bookingId) {
+      enqueueSnackbar('No booking ID available', { variant: 'error' });
+      return;
     }
-    console.log('Session notes saved:', sessionNotes);
-    alert('Session notes saved successfully!');
+
+    try {
+      await saveNotesMutation.mutateAsync({
+        bookingId,
+        data: { notes: sessionNotes },
+      });
+      // Success notification is handled by the mutation
+    } catch (error) {
+      console.error('Failed to save notes:', error);
+      // Error notification is handled by the mutation
+    }
   };
 
   // Loading state
@@ -160,61 +287,42 @@ const LiveSessionPage = ({ bookingId }: LiveSessionPageProps) => {
           {sessionStatus === 'waiting' && (
             <>
               <h2 className="text-2xl sm:text-3xl mb-4 font-semibold">
-                Session Starts Soon
+                Meeting Starts Soon
               </h2>
               <p className="text-xl mb-3">Countdown: {countdown}</p>
               <p className="text-base text-gray-300 px-4">
-                Client will join automatically when the session begins
+                The join button will be enabled when the scheduled time arrives
               </p>
             </>
           )}
           {sessionStatus === 'ready' && (
             <>
               <h2 className="text-2xl sm:text-3xl mb-4 font-semibold text-green-400">
-                Session Ready to Start
+                Meeting Ready to Join
               </h2>
-              <p className="text-xl mb-3">Time: {countdown}</p>
+              <p className="text-xl mb-3 text-green-400">It's time!</p>
               <p className="text-base text-gray-300 px-4">
-                You can start the session now
-              </p>
-            </>
-          )}
-          {sessionStatus === 'started' && (
-            <>
-              <h2 className="text-2xl sm:text-3xl mb-4 font-semibold text-blue-400">
-                Session in Progress
-              </h2>
-              <p className="text-base text-gray-300 px-4">
-                Session is now live with the client
+                You can now join the meeting with your client
               </p>
             </>
           )}
         </div>
 
-        {/* Start Session Button */}
+        {/* Join Meeting Button */}
         <div className="mb-12">
-          {sessionStatus === 'started' ? (
-            <Button
-              disabled
-              className="text-gray-400 font-semibold border-0 text-base bg-gray-600 w-full max-w-sm h-[60px] cursor-not-allowed"
-            >
-              Session in Progress
-            </Button>
-          ) : (
-            <Button
-              onClick={handleStartSession}
-              disabled={sessionStatus === 'waiting'}
-              className={`text-black font-semibold border-0 text-base w-full max-w-sm h-[60px] ${
-                sessionStatus === 'waiting'
-                  ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                  : 'bg-gradient-to-r from-golden-glow via-pink-shade to-bronze hover:opacity-90'
-              }`}
-            >
-              {sessionStatus === 'ready'
-                ? 'Start Session Now'
-                : `Starts in ${countdown}`}
-            </Button>
-          )}
+          <Button
+            onClick={handleJoinMeeting}
+            disabled={sessionStatus === 'waiting'}
+            className={`text-black font-semibold border-0 text-base w-full max-w-sm h-[60px] ${
+              sessionStatus === 'waiting'
+                ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                : 'bg-gradient-to-r from-golden-glow via-pink-shade to-bronze hover:opacity-90'
+            }`}
+          >
+            {sessionStatus === 'ready'
+              ? 'Join Meeting'
+              : `Starts in ${countdown}`}
+          </Button>
         </div>
       </div>
 
@@ -237,9 +345,20 @@ const LiveSessionPage = ({ bookingId }: LiveSessionPageProps) => {
         <div className="flex justify-center">
           <Button
             onClick={handleSaveNotes}
-            className="text-black font-semibold border-0 text-base bg-gradient-to-r from-golden-glow via-pink-shade to-bronze w-full max-w-sm h-[60px]"
+            disabled={saveNotesMutation.isPending}
+            className="text-black font-semibold border-0 text-base bg-gradient-to-r from-golden-glow via-pink-shade to-bronze w-full max-w-sm h-[60px] disabled:opacity-50"
           >
-            Save Notes
+            {saveNotesMutation.isPending ? (
+              <>
+                <SpinnerLoader size={16} color="#000000" className="mr-2" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-4 h-4 mr-2" />
+                Save Notes
+              </>
+            )}
           </Button>
         </div>
       </div>

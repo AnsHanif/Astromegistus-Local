@@ -40,10 +40,12 @@ export default function DashboardTabs() {
               ${
                 isActive
                   ? 'bg-gradient-to-r from-[#DAB612] via-[#EED66C] to-[#AB6A1C] text-black'
-                  : 'bg-emerald-green text-white hover:bg-emerald-green/90'
+                  : 'bg-[var(--bg)] text-white hover:bg-[var(--bg-hover)]'
               }
               ${
-                index < tabs.length - 1 ? 'border-b lg:border-b-0 lg:border-r border-white/20' : ''
+                index < tabs.length - 1
+                  ? 'border-b lg:border-b-0 lg:border-r border-white/20'
+                  : ''
               }`}
           >
             <Icon className="h-4 w-4 md:h-5 md:w-5" />

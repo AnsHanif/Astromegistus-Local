@@ -33,22 +33,9 @@ const PastSessionsPage = () => {
           sessions.map((session) => (
             <AstrologersSessionCard
               key={session.id}
-              name={session.clientName}
+              session={session}
               tag="Completed"
-              duration={session.duration}
               statusLabel="Completed On"
-              statusDate={new Date(
-                session.completedAt || session.updatedAt
-              ).toLocaleString('en-US', {
-                month: 'short',
-                day: 'numeric',
-                year: 'numeric',
-                hour: 'numeric',
-                minute: 'numeric',
-                hour12: true,
-                timeZoneName: 'short',
-              })}
-              earned={session.price ? session.price.toString() : '0'}
             />
           ))
         )}

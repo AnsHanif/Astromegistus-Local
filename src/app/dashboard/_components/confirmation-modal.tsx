@@ -14,6 +14,7 @@ interface ConfirmationModalProps {
   btn2Title: string;
   iconType: 'logout' | 'cancelSub';
   onSubmit: () => void;
+  isLoading?: boolean;
   classNames?: string;
 }
 
@@ -34,13 +35,14 @@ export default function ConfirmationModal({
   btn2Title,
   iconType,
   onSubmit,
+  isLoading = false,
   classNames = '',
 }: ConfirmationModalProps) {
   const modalStyles = {
     modal: {
       maxHeight: '600px',
       borderRadius: '1rem',
-      maxWidth: '40rem',
+      maxWidth: '35rem',
       width: '100%',
       background: '#fff',
       padding: 0,
@@ -53,7 +55,9 @@ export default function ConfirmationModal({
   return (
     <CustomModal
       isOpen={open}
-      onClose={onClose}
+      onClose={() => {
+        if (!isLoading) onClose();
+      }}
       styles={modalStyles}
       showCloseIcon={true}
     >
@@ -70,7 +74,7 @@ export default function ConfirmationModal({
                 src={ICON_URLS[iconType]}
                 loop
                 autoplay
-                className={`w-32 h-32 md:w-40 md:h-40 ${
+                className={`w-32 h-32 ${
                   iconType === 'cancelSub' && 'scale-200'
                 }`}
               />
@@ -91,14 +95,16 @@ export default function ConfirmationModal({
             <div className="space-y-4 pt-10">
               <Button
                 onClick={onSubmit}
+                disabled={isLoading}
                 className="w-full bg-[#F80808] hover:bg-[#C90606] text-white outline-none focus-visible:ring-0 "
               >
-                {btn1Title}
+                {isLoading ? 'Loading...' : btn1Title}
               </Button>
 
               <Button
                 className="w-full bg-transparent text-golden-glow  border border-golden-glow hover:bg-golden-glow/20"
                 onClick={onClose}
+                disabled={isLoading}
               >
                 {btn2Title}
               </Button>

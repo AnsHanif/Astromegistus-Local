@@ -17,14 +17,14 @@ const KeyFeaturesCard: FC<KeyFeaturesCardProps> = ({
 }) => {
   return (
     <div className={`bg-grey-light-50 ${classNames}`}>
-      <h2 className="text-size-heading text-left md:text-size-primary font-semibold mb-4">
+      <h2 className="text-2xl md:text-3xl text-left font-semibold mb-4">
         {title}
       </h2>
       <ul className="space-y-3">
         {features.map((feature, idx) => (
           <li key={idx} className="flex items-center justify-start gap-2">
             <FeatureIcon className="text-bronze shrink-0" />
-            <span className="text-sm">{feature}</span>
+            <span className="text-base">{feature}</span>
           </li>
         ))}
       </ul>

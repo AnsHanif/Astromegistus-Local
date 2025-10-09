@@ -8,11 +8,13 @@ import Step3ChooseAstrologer from './step-3-choose-astrologer';
 import Step4ManualReadingSchedule from './step-4-manual-reading-schedule';
 import Step4SetAstrologerTime from './step-4-set-astrologer-time';
 import Step5BookingConfirmed from './step-5-booking-confirmed';
+import { useBooking } from '../../_components/booking-context';
 
 const ManualReadingPage = () => {
   const [step, setStep] = useState(1);
   const [selection, setSelection] = useState<'auto' | 'manual' | null>(null);
-
+  const { data: bookingData } = useBooking();
+  console.log('bookingData is : ', bookingData);
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 

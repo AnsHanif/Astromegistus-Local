@@ -5,12 +5,14 @@ interface User {
   name: string;
   email: string;
   role: string;
+  profilePic?: string;
   dateOfBirth?: string;
   timeOfBirth?: string;
   gender?: string;
   placeOfBirth?: string;
   timeZone?: string;
   isUserVerified?: boolean;
+  defaultPaymentMethod?: string | null;
   subscriptions?: Array<{
     id: string;
     status: boolean;
@@ -20,6 +22,7 @@ interface User {
       id: string;
       name: string;
       type: string;
+      price?: number;
     };
   }>;
 }
@@ -42,7 +45,10 @@ const userSlice = createSlice({
   name: 'user',
   initialState,
   reducers: {
-    setCurrentUser: (state, action: PayloadAction<{ user: User; token: string }>) => {
+    setCurrentUser: (
+      state,
+      action: PayloadAction<{ user: User; token: string }>
+    ) => {
       state.currentUser = action.payload.user;
       state.token = action.payload.token;
       state.error = null;
@@ -55,7 +61,10 @@ const userSlice = createSlice({
     setToken: (state, action: PayloadAction<string>) => {
       state.token = action.payload;
     },
-    updateUserSubscription: (state, action: PayloadAction<User['subscriptions']>) => {
+    updateUserSubscription: (
+      state,
+      action: PayloadAction<User['subscriptions']>
+    ) => {
       if (state.currentUser) {
         state.currentUser.subscriptions = action.payload;
       }
@@ -76,7 +85,7 @@ export const {
   setToken,
   updateUserSubscription,
   setUserLoading,
-  setUserError
+  setUserError,
 } = userSlice.actions;
 
 export default userSlice.reducer;

@@ -13,6 +13,8 @@ export type ManualReadingForm = {
   birthCountry?: string;
   dateOfBirth?: string;
   timeOfBirth?: string;
+  birthCountryLabel?: string;
+  birthCity?: string;
   question1?: string;
   question2?: string;
 };

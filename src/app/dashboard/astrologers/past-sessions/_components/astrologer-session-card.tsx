@@ -1,27 +1,114 @@
 import { FC } from 'react';
 import { Clock, Radio, Download, Check } from 'lucide-react';
 
+interface SessionData {
+  id: string;
+  clientName: string;
+  duration: string;
+  price?: number;
+  completedAt?: string;
+  updatedAt: string;
+  createdAt?: string;
+  scheduledStartTime?: string;
+  scheduledEndTime?: string;
+  providerTimezone?: string;
+}
+
 interface AstrologersSessionCardProps {
-  name: string; // e.g. "Your Next 12 Months"
+  session: SessionData;
   tag: string; // e.g. "Predictive"
-  duration: string; // e.g. "11:00 (60 mins)"
   statusLabel: string; // e.g. "Joined On" or "Completed"
-  statusDate: string; // e.g. "Aug 15, 2025, 2:00 PM (EST)"
-  earned: string; // e.g. "$12"
   type?: string; // if you still want this to control "preparing" logic
   classNames?: string;
 }
 
 const AstrologersSessionCard: FC<AstrologersSessionCardProps> = ({
-  name,
+  session,
   tag,
-  duration,
   statusLabel,
-  statusDate,
-  earned,
   type,
   classNames = '',
 }) => {
+  // Format the completion date with proper validation
+  const getValidDate = (dateString?: string) => {
+    if (!dateString) return null;
+    const date = new Date(dateString);
+    return isNaN(date.getTime()) ? null : date;
+  };
+
+  // Use scheduledEndTime as the completion date, with fallbacks
+  const completionDate =
+    getValidDate(session.scheduledEndTime) ||
+    getValidDate(session.completedAt) ||
+    getValidDate(session.updatedAt) ||
+    new Date();
+
+  const statusDate = completionDate.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: 'numeric',
+    hour12: true,
+    timeZone: session.providerTimezone || 'UTC',
+  });
+
+  // Format the session time with proper validation
+  const getValidSessionTime = (startTime?: string, endTime?: string) => {
+    if (!startTime || !endTime) return null;
+    const startDate = new Date(startTime);
+    const endDate = new Date(endTime);
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return null;
+
+    return {
+      startDate,
+      endDate,
+    };
+  };
+
+  const sessionTimeData = getValidSessionTime(
+    session.scheduledStartTime,
+    session.scheduledEndTime
+  );
+
+  const sessionTime = sessionTimeData
+    ? `${new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        timeZone: session.providerTimezone || 'UTC',
+      }).format(sessionTimeData.startDate)}
+at ${new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: session.providerTimezone || 'UTC',
+      }).format(sessionTimeData.startDate)}
+- ${new Intl.DateTimeFormat('en-US', {
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: session.providerTimezone || 'UTC',
+      }).format(sessionTimeData.endDate)}
+${session.providerTimezone ? ` (${session.providerTimezone})` : ''}`
+    : (() => {
+        const fallbackDate =
+          getValidDate(session.createdAt) ||
+          getValidDate(session.updatedAt) ||
+          new Date();
+        return new Intl.DateTimeFormat('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: true,
+          timeZone: session.providerTimezone || 'UTC',
+        }).format(fallbackDate);
+      })();
+
+  const earned = session.price ? session.price.toString() : '0';
   return (
     <div
       className={`flex items-center justify-between bg-graphite py-6 px-4 sm:px-8 text-white shadow-lg gap-4 ${classNames}`}
@@ -29,7 +116,9 @@ const AstrologersSessionCard: FC<AstrologersSessionCardProps> = ({
       <div className="space-y-4">
         <div className="flex flex-col sm:flex-row justify-between gap-4 sm:gap-0">
           <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
-            <h2 className="md:text-size-large font-semibold">{name}</h2>
+            <h2 className="md:text-size-large font-semibold">
+              {session.clientName}
+            </h2>
             <span className="text-sm font-normal flex gap-1 px-4 pt-1.5 pb-0.5 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-black w-fit">
               <Check className="w-4 h-4" /> {tag}
             </span>
@@ -37,8 +126,14 @@ const AstrologersSessionCard: FC<AstrologersSessionCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2 text-sm">
-          <Clock className="h-4 w-4" /> {duration}
+          <Clock className="h-4 w-4" /> {session.duration}
         </div>
+
+        {sessionTime && (
+          <div className="flex items-center gap-2 text-sm text-gray-400">
+            <Clock className="h-4 w-4" /> {sessionTime}
+          </div>
+        )}
 
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 justify-between text-sm max-w-lg">
           <div className="flex items-center gap-2">

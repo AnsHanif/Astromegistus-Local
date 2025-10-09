@@ -5,19 +5,19 @@ import { Clock, Eye } from 'lucide-react';
 interface CardProps {
   title: string;
   type: 'reading' | 'session';
-  label?: string;
   duration: string;
   actionText: string;
   href?: string;
   classNames?: string;
+  categories?: string[];
 }
 
 export default function ReadingSessionCard({
   title,
   type,
-  label = '',
   duration,
   actionText,
+  categories,
   classNames,
   href = '',
 }: CardProps) {
@@ -30,11 +30,11 @@ export default function ReadingSessionCard({
         <h3 className="text-size-large md:text-size-heading font-semibold">
           {title}
         </h3>
-        {label && (
+        {categories && categories.length > 0 && (
           <span
             className={`inline-block bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark text-xs px-2 py-1 mt-2 text-black`}
           >
-            {label}
+            {categories.join(' / ')}
           </span>
         )}
         <div className="flex justify-center sm:justify-start items-center text-sm mt-3">

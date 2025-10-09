@@ -16,6 +16,7 @@ export type BookingType =
 export interface BookingData {
   // Common fields
   productId: string;
+  itemId: string; // purchasedProduct id
   bookingType: BookingType;
 
   // Personal Information
@@ -28,6 +29,13 @@ export interface BookingData {
   timePeriod: string;
   gender: string;
   birthCountry: string;
+  birthCountryLabel: string;
+  birthCity: string;
+
+  // Location data from external API
+  latitude?: number;
+  longitude?: number;
+  locationTimezone?: string;
 
   // Questions (for manual reading)
   question1: string;
@@ -50,11 +58,12 @@ export interface BookingData {
   // Optional contact information
   email?: string;
   phone?: string;
+  notes?: string;
 
   // Booking Details
   bookingId: string | null;
   status: 'pending' | 'confirmed' | 'completed';
-  
+
   // Session Details (for display)
   sessionTitle: string | null;
   sessionDescription: string | null;
@@ -73,6 +82,7 @@ const initialData: BookingData = {
   productId: '',
   bookingType: 'manual-reading',
   fullName: '',
+  itemId: '',
   day: '',
   month: '',
   year: '',
@@ -81,6 +91,11 @@ const initialData: BookingData = {
   timePeriod: '',
   gender: '',
   birthCountry: '',
+  birthCountryLabel: '',
+  birthCity: '',
+  latitude: undefined,
+  longitude: undefined,
+  locationTimezone: '',
   question1: '',
   question2: '',
   question3: '',
@@ -93,6 +108,7 @@ const initialData: BookingData = {
   timezone: '',
   email: '',
   phone: '',
+  notes: '',
   bookingId: null,
   status: 'pending',
   sessionTitle: null,

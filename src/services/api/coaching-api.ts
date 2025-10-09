@@ -17,7 +17,9 @@ export const coachingAPI = {
     limit?: number;
     search?: string;
     category?: string;
-    priceRange?: string;
+    productType?: string;
+    minPrice?: string;
+    maxPrice?: string;
     duration?: string;
   }) => {
     const response = await axiosInstance.get('/coaching/sessions', {
@@ -29,6 +31,23 @@ export const coachingAPI = {
   getSingleCoachingSession: async (id: string) => {
     const response = await axiosInstance.get(`/coaching/sessions/${id}`);
     return response;
+  },
+
+  // Get coaching sections
+  getCoachingSections: async (coachingId: string) => {
+    const response = await axiosInstance.get(
+      `/coaching/sessions/${coachingId}/sections`
+    );
+    return response;
+  },
+
+  // Get astrologer for coaching session (auto-assign)
+  getAstrologerForSession: async (sessionId: string) => {
+    const response = await axiosInstance.post(`/coaching/coaches/random`, {
+      sessionId,
+    });
+
+    return response.data?.data;
   },
 };
 
@@ -74,6 +93,7 @@ export const adminCoachingAPI = {
     formData.append('category', data.category);
     formData.append('isActive', data.isActive.toString());
     formData.append('features', JSON.stringify(data.features));
+    formData.append('packages', JSON.stringify(data.packages));
     formData.append('image', data.image);
 
     return adminAxiosInstance.post<CoachingSession>(
@@ -110,6 +130,8 @@ export const adminCoachingAPI = {
       formData.append('isActive', data.isActive.toString());
     if (data.features)
       formData.append('features', JSON.stringify(data.features));
+    if (data.packages)
+      formData.append('packages', JSON.stringify(data.packages));
     formData.append('image', data.image);
 
     return adminAxiosInstance.put<CoachingSession>(
@@ -136,6 +158,39 @@ export const adminCoachingAPI = {
     adminAxiosInstance.patch<CoachingSession>(
       `/admin/coaching/sessions/${id}/disable`
     ),
+
+  // Coaching Sections API
+  getCoachingSections: (coachingId: string) => {
+    return adminAxiosInstance.get(
+      `/admin/coaching/sessions/${coachingId}/sections`
+    );
+  },
+
+  updateCoachingSections: (
+    coachingId: string,
+    sections: {
+      keyBenefits?: Array<{
+        title: string;
+        description?: string;
+        order: number;
+      }>;
+      whatYouWillLearn?: Array<{
+        title: string;
+        description?: string;
+        order: number;
+      }>;
+      whatsIncluded?: Array<{
+        title: string;
+        description?: string;
+        order: number;
+      }>;
+    }
+  ) => {
+    return adminAxiosInstance.put(
+      `/admin/coaching/sessions/${coachingId}/sections`,
+      sections
+    );
+  },
 
   // Booking functionality removed for now
 };

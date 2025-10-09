@@ -1,53 +1,26 @@
 'use client';
 import React, { useState } from 'react';
 import { ArrowRight } from 'lucide-react';
-import { Box, Crown } from '@/components/assets';
-import PricingPlanCard from '../../_components/pricing-plan-card';
 import ConfirmationModal from '../../_components/confirmation-modal';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/store/store';
+import { useSnackbar } from 'notistack';
+import { useCancelSubscription } from '@/hooks/mutation/profile-mutation/profile';
+import { getErrorMessage } from '@/utils/error-handler';
+import { useQueryClient } from '@tanstack/react-query';
+import PlansSection from './plans-section';
 
-const plans = [
-  {
-    id: 'classic',
-    title: 'Classic',
-    priceLabel: '$190/',
-    priceSuffix: 'yearly',
-    image: Box,
-    badge: 'Save $38',
-    features: [
-      '15% off all automated chart readings',
-      '10% off live astrologer readings',
-      '10% off personal coaching sessions',
-      'Access to astrology news & insights',
-      'Basic customer support',
-    ],
-    buttonText: 'Current Plan',
-    buttonStyle: 'bg-emerald-green text-white',
-    borderColor: '#000000',
-  },
-  {
-    id: 'premier',
-    title: 'Premier',
-    priceLabel: '$390/',
-    priceSuffix: 'yearly',
-    image: Crown,
-    badge: 'Save $78 Annually',
-    features: [
-      '20% off all automated readings',
-      '3 free automated readings/year ($90-150 value)',
-      '2 free 30-min live coaching sessions/year',
-      'Priority booking for live readings & coaching',
-      'All Classic benefits',
-      'Premium customer support',
-    ],
-    buttonText: 'Upgrade Now',
-    borderColor: '#0D853D',
-  },
-];
+const formatName = (name?: string) => {
+  if (!name) return '';
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+};
 
 export default function ManageSubscriptionPage() {
+  const queryClient = useQueryClient();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const userInfo = useSelector((state: RootState) => state.user.currentUser);
+
+  const { mutate, isPending } = useCancelSubscription();
 
   const [showPlan, setShowPlan] = useState(false);
   const [isModal, setIsModal] = useState(false);
@@ -60,6 +33,39 @@ export default function ManageSubscriptionPage() {
   const isPaidWithoutSub = role === 'PAID' && !hasActiveSub;
   const isGuest = role === 'GUEST';
   const isOtherRole = role !== 'PAID' && role !== 'GUEST';
+
+  const handleCancel = async () => {
+    if (!isPaidWithSub) {
+      closeSnackbar();
+      enqueueSnackbar(
+        'Cancel is only available for paid users with an active subscription.',
+        { variant: 'error' }
+      );
+      return;
+    }
+
+    mutate(
+      { subscriptionId: subscriptions[0]?.id },
+      {
+        onSuccess: (response: any) => {
+          localStorage.removeItem('cart');
+          localStorage.removeItem('final-cart');
+          queryClient.invalidateQueries({ queryKey: ['authUser'] });
+          closeSnackbar();
+          enqueueSnackbar(response?.message, { variant: 'success' });
+          setIsModal(false);
+          setTimeout(() => {
+            window.location.reload();
+          }, 1000);
+        },
+        onError: (error: any) => {
+          console.log(error);
+          closeSnackbar();
+          enqueueSnackbar(getErrorMessage(error), { variant: 'error' });
+        },
+      }
+    );
+  };
   return (
     <>
       {!showPlan ? (
@@ -71,7 +77,7 @@ export default function ManageSubscriptionPage() {
           {isPaidWithSub ? (
             <div className="flex items-center justify-between px-4 py-6 md:px-8 md:py-8 border border-golden-glow">
               <h1 className="text-size-heading md:text-size-primary font-bold bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark bg-clip-text text-transparent">
-                {subscriptions[0]?.plan?.name} Subscription
+                {formatName(subscriptions[0]?.plan?.name)} Subscription
               </h1>
               <div className="text-right">
                 <p className="text-size-tertiary font-normal mb-1">
@@ -130,21 +136,19 @@ export default function ManageSubscriptionPage() {
           <ConfirmationModal
             open={isModal}
             onClose={() => setIsModal(false)}
-            onSubmit={() => setIsModal(false)}
+            onSubmit={handleCancel}
             title="Cancel Subscription"
-            subTitle={`${subscriptions[0]?.plan?.name} Plan`}
-            description="You'll lose access to classic features immediately after cancellation."
+            subTitle={`${formatName(subscriptions[0]?.plan?.name)} Plan – $${subscriptions[0]?.plan?.price}/${subscriptions[0]?.plan?.type?.toLowerCase() === 'monthly' ? 'Month' : 'Year'}`}
+            description="You'll lose access to plan features immediately after cancellation."
             btn1Title="Yes, Cancel"
             btn2Title="Keep Subscription"
             iconType="cancelSub"
+            isLoading={isPending}
+            classNames="!bg-[#212121] text-white"
           />
         </div>
       ) : (
-        <div className="flex flex-col md:flex-row justify-center gap-8 z-10 my-10 text-black">
-          {plans.map((plan) => (
-            <PricingPlanCard key={plan.id} plan={plan} />
-          ))}
-        </div>
+        <PlansSection onBack={() => setShowPlan(false)} />
       )}
     </>
   );

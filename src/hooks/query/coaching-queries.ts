@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import {
   publicCoachingAPI,
   adminCoachingAPI,
+  coachingAPI,
 } from '@/services/api/coaching-api';
 import { CoachingQueryParams } from '@/types/coaching';
 
@@ -22,7 +23,7 @@ export const useCoachingSession = (id: string) => {
   return useQuery({
     queryKey: ['coaching', 'session', id],
     queryFn: async () => {
-      const response = await publicCoachingAPI.getCoachingSessionById(id);
+      const response = await coachingAPI.getSingleCoachingSession(id);
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes

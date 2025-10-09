@@ -1,5 +1,5 @@
 import React from 'react';
-import AvailabilityCalendarPage from './_components/avaialability-calendar-page';
+import AvailabilityCalendarPage from './_components/availability-calendar-page';
 
 const AvailabilityCalendar = () => {
   return <AvailabilityCalendarPage />;

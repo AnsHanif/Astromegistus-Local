@@ -4,11 +4,13 @@ import React, { useState, useEffect } from 'react';
 import BookedProducts from './booked-products';
 import { useRecentReadings } from '@/hooks/query/booking-queries';
 import { enqueueSnackbar } from 'notistack';
-import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
+import SectionLoader from '@/components/common/section-loader';
+import { useRouter } from 'next/navigation';
 
 export default function BookedReadingsPage() {
   const [page, setPage] = useState(1);
   const limit = 10;
+  const router = useRouter();
 
   const {
     data: readingsData,
@@ -29,12 +31,12 @@ export default function BookedReadingsPage() {
   if (isLoading && !readingsData) {
     return (
       <div className="py-10">
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex items-center gap-2 text-white">
-            <SpinnerLoader size={20} color="#ffffff" />
-            <span>Loading recent readings...</span>
-          </div>
-        </div>
+        <SectionLoader
+          message="Loading recent readings..."
+          className="min-h-[400px]"
+          size={40}
+          color="#D4AF37"
+        />
       </div>
     );
   }
@@ -43,16 +45,25 @@ export default function BookedReadingsPage() {
   const readings = error ? [] : readingsData?.readings || [];
   const totalReadings = error ? 0 : readingsData?.pagination.total || 0;
 
+  const handleReschedule = (sessionId: string, bookingId: string) => {
+    router.push(
+      `/products/flow/reschedule?sessionId=${sessionId}&bookingId=${bookingId}&type=reading`
+    );
+  };
+
   return (
     <div className="py-10">
       <h1 className="text-size-heading md:text-size-heading font-semibold">
-        Recent Booked Readings <span className="text-sm font-medium">({totalReadings})</span>
+        Recent Booked Readings{' '}
+        <span className="text-sm font-medium">({totalReadings})</span>
       </h1>
 
       {readings.length === 0 ? (
         <div className="py-8 text-center">
           <p className="text-gray-400 text-lg">No recent readings found</p>
-          <p className="text-gray-500 text-sm mt-2">Your upcoming readings will appear here</p>
+          <p className="text-gray-500 text-sm mt-2">
+            Your upcoming readings will appear here
+          </p>
         </div>
       ) : (
         <div className="py-4 grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-4 md:gap-8">
@@ -60,11 +71,26 @@ export default function BookedReadingsPage() {
             <BookedProducts
               key={reading.id}
               title={reading.productName}
-              description={reading.productDescription || 'No description available'}
-              tag={reading.categories.length > 0 ? reading.categories[0] : 'Reading'}
+              description={
+                reading.productDescription || 'No description available'
+              }
+              tag={
+                reading.categories?.length > 0
+                  ? reading.categories[0]
+                  : 'Reading'
+              }
               duration={reading.duration}
               image="/product-card-1.png" // Default image, could be made dynamic
               type={reading.type === 'AUTOMATED' ? 'reading' : 'live'}
+              meetingLink={reading.meetingLink}
+              meetingId={reading.meetingId}
+              meetingStatus={reading.meetingStatus}
+              selectedDate={reading.selectedDate}
+              selectedTime={reading.selectedTime}
+              timezone={reading.userTimezone}
+              bookingId={reading.id}
+              sessionId={reading.productId} // Using bookingId as sessionId for now
+              onReschedule={handleReschedule}
             />
           ))}
         </div>

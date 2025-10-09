@@ -21,8 +21,9 @@ const ProductPage = () => {
   const initialFilters = {
     category: searchParams.get('category') || '',
     productType: searchParams.get('productType') || '',
-    productPrice: searchParams.get('productPrice') || '',
-    timeDuration: searchParams.get('timeDuration') || '',
+    minPrice: searchParams.get('minPrice') || '',
+    maxPrice: searchParams.get('maxPrice') || '',
+    duration: searchParams.get('timeDuration') || '',
   };
 
   const [search, setSearch] = useState(initialSearch);
@@ -66,7 +67,7 @@ const ProductPage = () => {
         filters={filters}
         setFilters={setFilters}
       />
-      <ProductBannerSection />
+      <ProductBannerSection videoType="reading" />
       <div>
         <ProductFeatures />
         <ProductsCards
@@ -77,9 +78,17 @@ const ProductPage = () => {
           isFetchingNextPage={isFetchingNextPage}
         />
       </div>
-      <ProductBannerSection />
 
-      <CoachesSession />
+      <div className="text-center mt-16 mb-12">
+        <h1 className="text-5xl font-bold">All Coaching Sessions</h1>
+        <p className="text-grey text-base pt-4">
+          Choose the right coach for your journey
+        </p>
+      </div>
+
+      <ProductBannerSection videoType="coaching" />
+
+      <CoachesSession search={debouncedSearch} filters={debouncedFilters} />
     </div>
   );
 };

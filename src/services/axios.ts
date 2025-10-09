@@ -8,7 +8,7 @@ const axiosInstance = axios.create({ baseURL, withCredentials: true });
 
 // Add token to every request
 axiosInstance.interceptors.request.use((config) => {
-  const token = Cookies.get('astro-tk'); // read token
+  const token = Cookies.get('astro-tk') || Cookies.get('adminToken'); // read token
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }

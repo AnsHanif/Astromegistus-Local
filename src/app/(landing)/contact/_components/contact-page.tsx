@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Mail, MapPin } from 'lucide-react';
+import { useSubmitContactForm } from '@/hooks/mutation/contact-mutations';
+import { useSnackbar } from 'notistack';
+import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 
 type EditProfileForm = {
   fullName: string;
@@ -16,12 +19,34 @@ type EditProfileForm = {
 };
 
 export default function ContactPage() {
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const methods = useForm<EditProfileForm>({
     mode: 'onBlur',
     reValidateMode: 'onBlur',
   });
+
+  const { mutate, isPending } = useSubmitContactForm();
+
+  const onSubmit = (data: EditProfileForm) => {
+    mutate(data, {
+      onSuccess: (response: any) => {
+        closeSnackbar();
+        enqueueSnackbar(
+          response?.message || 'Message sent successfully! We\'ll get back to you soon.',
+          { variant: 'success' }
+        );
+        methods.reset();
+      },
+      onError: (error: any) => {
+        closeSnackbar();
+        const errorMessage = error?.response?.data?.message || 'Something went wrong. Please try again.';
+        enqueueSnackbar(errorMessage, { variant: 'error' });
+      },
+    });
+  };
+
   return (
-    <div className="px-4 sm:px-12 py-16">
+    <div className="px-4 sm:px-12 py-6 sm:py-16">
       <div className="relative">
         <div className="absolute inset-0 -z-10">
           <Image
@@ -33,17 +58,21 @@ export default function ContactPage() {
           />
         </div>
 
-        <h1 className="text-size-primary md:text-size-heading-2xl text-center font-bold">
+        <h1 className="text-5xl text-center font-bold">
           Get In Touch
         </h1>
 
-        <p className="md:text-size-medium font-semibold text-center max-w-xl mx-auto mb-6">
-          We’d Love To Hear From You. Whether It’s A Question, Feedback, Or A
+        <p className="text-base font-semibold text-center max-w-xl mx-auto mb-6 pt-2">
+          We'd Love To Hear From You. Whether It's A Question, Feedback, Or A
           Request For Guidance — Our Team Is Here For You.
         </p>
 
         <FormProvider {...methods}>
-          <form className="max-w-5xl mx-auto space-y-6 pt-10">
+
+          <form
+            onSubmit={methods.handleSubmit(onSubmit)}
+            className="max-w-5xl mx-auto space-y-6 pt-10"
+          >
             <div className="flex flex-col md:flex-row gap-6 md:gap-20">
               <FormInput
                 label="Full Name"
@@ -83,41 +112,73 @@ export default function ContactPage() {
               />
             </div>
             <div>
-              <Label className="block text-size-secondary md:text-size-medium font-semibold mb-4">
+              <Label className="block text-base font-semibold mb-4">
                 Message
               </Label>
 
               <Textarea
+                {...methods.register('message', {
+                  required: 'Message is required',
+                  minLength: {
+                    value: 10,
+                    message: 'Message must be at least 10 characters long',
+                  },
+                  maxLength: {
+                    value: 1000,
+                    message: 'Message must be at most 1000 characters long',
+                  },
+                })}
                 className="text-base border-emerald-green placeholder:text-grey py-4 border-[1px] focus:border-black focus:ring-0 focus:outline-none rounded-none h-35"
                 placeholder="Write message here..."
               />
+
+              {methods.formState.errors?.message && (
+                <p className="text-red-500 text-sm mt-1">
+                  {methods.formState.errors?.message?.message as string}
+                </p>
+              )}
             </div>
-            <div className="flex items-center space-x-4">
-              <input
-                type="checkbox"
-                id="privacy"
-                className="cursor-pointer h-6 w-6"
-              />
-              <label htmlFor="privacy" className="cursor-pointer font-semibold">
-                I agree to the privacy policy.
-              </label>
+            <div>
+              <div className="flex items-center space-x-4">
+                <input
+                  {...methods.register('termsAndCondition', {
+                    required: 'You must agree to the privacy policy',
+                  })}
+                  type="checkbox"
+                  id="privacy"
+                  className="cursor-pointer h-6 w-6"
+                />
+                <label htmlFor="privacy" className="cursor-pointer font-semibold">
+                  I agree to the privacy policy.
+                </label>
+              </div>
+
+              {methods.formState.errors?.termsAndCondition && (
+                <p className="text-red-500 text-sm mt-1">
+                  {methods.formState.errors?.termsAndCondition?.message as string}
+                </p>
+              )}
             </div>
 
             <div className="flex justify-center items-center my-10 md:my-15">
-              <Button className="w-full md:w-61 bg-emerald-green text-white">
-                Send Message
+              <Button
+                type="submit"
+                disabled={isPending}
+                className="w-full md:w-61 bg-emerald-green text-white flex items-center justify-center gap-2"
+              >
+                {isPending && <SpinnerLoader />}
+                {isPending ? 'Sending...' : 'Send Message'}
               </Button>
             </div>
           </form>
         </FormProvider>
 
         <div className="flex flex-col lg:flex-row justify-between gap-6 lg:gap-12 items-start lg:items-center font-semibold max-w-6xl mx-auto">
-          <div className="flex items-center gap-4">
-            <Mail size={24} className="mb-0.5" /> Email:{' '}
-            <span className="underline">info@astromegistus.com</span>
+          <div className="flex items-center gap-2">
+            <Mail size={24} className="mb-0.5" />Email: <span className="underline">info@astromegistus.com</span>
           </div>
-          <div className="flex items-center gap-4">
-            <MapPin size={24} className="mb-0.5" /> Address: 1911 Crossgate
+          <div className="flex items-center gap-2">
+            <MapPin size={24} className="mb-0.5 flex-shrink-0 transform translate-x-0.5 -translate-y-0.5" />Address: 1911 Crossgate
             Park, San Antonio, TX 78247
           </div>
         </div>

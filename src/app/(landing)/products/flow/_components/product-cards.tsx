@@ -2,9 +2,10 @@
 
 import React, { useRef, useEffect, useState } from 'react';
 import ProductCard from './product-card';
-import FullScreenLoader from '@/components/common/full-screen-loader';
+import SectionLoader from '@/components/common/section-loader';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import { Button } from '@/components/ui/button';
+import { enqueueSnackbar } from 'notistack';
 
 interface ProductsCardsProps {
   products: any;
@@ -21,9 +22,10 @@ const ProductsCards = ({
   hasNextPage,
   isFetchingNextPage,
 }: ProductsCardsProps) => {
-  console.log(`Has Next Page `, hasNextPage);
   const loaderRef = useRef<HTMLDivElement | null>(null);
   const [cartItems, setCartItems] = useState<string[]>([]);
+
+  console.log('products are : ', products);
 
   // Load cart items from localStorage on mount
   useEffect(() => {
@@ -46,8 +48,14 @@ const ProductsCards = ({
 
     if (existingItemIndex > -1) {
       // Remove from cart
+      const removedItem = cart[existingItemIndex];
       cart.splice(existingItemIndex, 1);
       setCartItems((prev) => prev.filter((id) => id !== productId));
+
+      // Show toast for removal
+      enqueueSnackbar(`${removedItem.name} removed from cart`, {
+        variant: 'info',
+      });
     } else {
       // Add to cart - you'll need to get product details from your products data
       const product = getProductById(productId);
@@ -55,7 +63,8 @@ const ProductsCards = ({
         const cartItem = {
           id: product.id,
           name: product.name,
-          price: product?.pricing?.automated?.discountedPrice ?? 0,
+          automatedPrice: product?.pricing?.automated?.discountedPrice ?? 0,
+          livePrice: product?.pricing?.live?.discountedPrice ?? 0,
           qty: 1,
           image: product.imageUrl || '/images/no-image.png',
           duration: product.duration || '30 + 60 minutes',
@@ -63,11 +72,19 @@ const ProductsCards = ({
         };
         cart.push(cartItem);
         setCartItems((prev) => [...prev, productId]);
+
+        // Show toast for addition
+        enqueueSnackbar(`${product.name} added to cart`, {
+          variant: 'success',
+        });
       }
     }
 
     // Update localStorage
     localStorage.setItem('cart', JSON.stringify(cart));
+
+    // Dispatch custom event to update cart count
+    window.dispatchEvent(new Event('cartUpdated'));
   };
 
   // Helper function to get product by ID
@@ -105,27 +122,33 @@ const ProductsCards = ({
 
   return (
     <section>
-      <div className="py-6 grid grid-cols-1 place-items-center md:grid-cols-2 gap-4 md:gap-8 mx-auto">
-        {isLoading && <FullScreenLoader />}
-
-        {products &&
-          products?.pages.flatMap((page: any) =>
-            page?.products?.map((product: any) => (
-              <ProductCard
-                key={product.id}
-                {...product}
-                productId={product.id}
-                isInCart={cartItems.includes(product.id)}
-                onCartToggle={handleCartToggle}
-                image={product.imageUrl ?? '/images/no-image.png'}
-                href={`/products/${product?.id}`}
-                description={product.description}
-                buttonText="View Details"
-                title={product.name}
-              />
-            ))
-          )}
-      </div>
+      {isLoading ? (
+        <SectionLoader message="Loading products..." />
+      ) : (
+        <div className="py-6 grid grid-cols-1 place-items-center md:grid-cols-2 gap-4 md:gap-8 mx-auto">
+          {products &&
+            products?.pages.flatMap((page: any) =>
+              page?.products?.map((product: any) => (
+                <ProductCard
+                  key={product.id}
+                  {...product}
+                  productId={product.id}
+                  isInCart={cartItems.includes(product.id)}
+                  onCartToggle={handleCartToggle}
+                  image={product.imageUrl || '/images/no-image.png'}
+                  href={`/products/${product?.id}`}
+                  description={product.description}
+                  automatedPrice={
+                    product?.pricing?.automated?.discountedPrice ?? 0
+                  }
+                  livePrice={product?.pricing?.live?.discountedPrice ?? 0}
+                  buttonText="View Details"
+                  title={product.name}
+                />
+              ))
+            )}
+        </div>
+      )}
 
       {hasNextPage && (
         <div className="flex justify-center py-6">
@@ -145,6 +168,18 @@ const ProductsCards = ({
           </Button>
         </div>
       )}
+
+      {!isLoading &&
+        products &&
+        products.pages &&
+        products.pages.length > 0 &&
+        products.pages.every(
+          (page: any) => !page.products || page.products.length === 0
+        ) && (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No products available</p>
+          </div>
+        )}
     </section>
   );
 };

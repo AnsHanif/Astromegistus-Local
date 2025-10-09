@@ -107,6 +107,8 @@ const CardPaymentForm = ({
               resolvedRole = 'GUEST';
             }
 
+            localStorage.removeItem('cart');
+            localStorage.removeItem('final-cart');
             localStorage.setItem('role', resolvedRole);
             Cookies.set('astro-tk', token);
             dispatch(setCurrentUser({ user, token }));

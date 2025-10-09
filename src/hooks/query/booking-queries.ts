@@ -36,11 +36,12 @@ export const usePastSessions = (params: GetSessionsParams = {}) => {
 // Hook for fetching session preparation data
 export const useSessionPreparation = (
   bookingId: string,
+  type?: string,
   enabled: boolean = true
 ) => {
   return useQuery({
     queryKey: ['session-preparation', bookingId],
-    queryFn: () => bookingAPI.getSessionPreparation(bookingId),
+    queryFn: () => bookingAPI.getSessionPreparation(bookingId, type),
     enabled: enabled && !!bookingId,
   });
 };
@@ -115,5 +116,66 @@ export const useTimeSlotsByDateAndId = (
     queryKey: ['timeslots', userId, date],
     queryFn: () => bookingAPI.getTimeSlotsByDateAndId(userId!, date!),
     enabled: enabled && !!userId && !!date,
+  });
+};
+
+// Hook for fetching detailed booking information
+export const useBookingDetails = (
+  bookingId: string,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: ['booking-details', bookingId],
+    queryFn: async () => {
+      const response = await bookingAPI.getBookingDetails(bookingId);
+      return response.data.data;
+    },
+    enabled: enabled && !!bookingId,
+  });
+};
+
+// Hook for fetching detailed coaching booking information
+export const useCoachingBookingDetails = (
+  bookingId: string,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: ['coaching-booking-details', bookingId],
+    queryFn: async () => {
+      const response = await bookingAPI.getCoachingBookingDetails(bookingId);
+      return response.data.data;
+    },
+    enabled: enabled && !!bookingId,
+  });
+};
+
+// Hook for fetching available slots (unified for products and coaching)
+export const useAvailableSlots = (
+  providerId: string | undefined,
+  productId: string | undefined,
+  sessionId: string | undefined,
+  date: string | undefined,
+  timezone?: string | undefined,
+  enabled: boolean = true
+) => {
+  return useQuery({
+    queryKey: [
+      'available-slots-v2',
+      providerId,
+      productId,
+      sessionId,
+      date,
+      timezone,
+    ],
+    queryFn: () =>
+      bookingAPI.getAvailableSlotsV2({
+        providerId: providerId!,
+        productId,
+        sessionId,
+        date: date!,
+        timezone,
+      }),
+    enabled: enabled && !!providerId && (!!productId || !!sessionId) && !!date,
+    staleTime: 30000, // 30 seconds
   });
 };

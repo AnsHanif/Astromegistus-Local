@@ -7,7 +7,6 @@ import {
   faFacebookF,
   faXTwitter,
   faInstagram,
-  faSpotify,
   faTiktok,
   faYoutube,
   faLinkedinIn,
@@ -19,13 +18,36 @@ import { logo } from '../assets';
 export default function Footer() {
   const router = useRouter();
   const icons = [
-    { href: '#', icon: faFacebookF, label: 'Facebook' },
-    { href: '#', icon: faXTwitter, label: 'X' },
-    { href: '#', icon: faInstagram, label: 'Instagram' },
-    { href: '#', icon: faSpotify, label: 'Spotify' },
-    { href: '#', icon: faTiktok, label: 'TikTok' },
-    { href: '#', icon: faYoutube, label: 'YouTube' },
-    { href: '#', icon: faLinkedinIn, label: 'LinkedIn' },
+    {
+      href: 'https://www.facebook.com/theastromegist',
+      icon: faFacebookF,
+      label: 'Facebook',
+    },
+    {
+      href: 'https://x.com/theastromegist',
+      icon: faXTwitter,
+      label: 'X',
+    },
+    {
+      href: 'https://www.instagram.com/theastromegist',
+      icon: faInstagram,
+      label: 'Instagram',
+    },
+    {
+      href: 'https://www.tiktok.com/@theastromegist',
+      icon: faTiktok,
+      label: 'TikTok',
+    },
+    {
+      href: 'https://www.youtube.com/@theastromegist',
+      icon: faYoutube,
+      label: 'YouTube',
+    },
+    {
+      href: 'https://www.linkedin.com/company/theastromegist',
+      icon: faLinkedinIn,
+      label: 'LinkedIn',
+    },
   ];
 
   return (
@@ -62,35 +84,44 @@ export default function Footer() {
           >
             <div className="space-y-8">
               <Link className="block hover:underline font-medium" href="/">
-                Your Stars
+                Home
               </Link>
-              <Link className="block hover:underline font-medium" href="/">
-                Astrology
+              <Link
+                className="block hover:underline font-medium"
+                href="/products"
+              >
+                Products
               </Link>
-              <Link className="block hover:underline font-medium" href="/">
-                Readings
-              </Link>
-            </div>
-            <div className="space-y-8">
-              <Link className="block hover:underline font-medium" href="/">
-                Order Your Chart
-              </Link>
-              <Link className="block hover:underline font-medium" href="/">
-                About Us
-              </Link>
-              <Link className="block hover:underline font-medium" href="/">
-                Horoscope
+              <Link
+                className="block hover:underline font-medium"
+                href="/career"
+              >
+                Career
               </Link>
             </div>
             <div className="space-y-8">
-              <Link className="block hover:underline font-medium" href="/">
+              <Link
+                className="block hover:underline font-medium"
+                href="/contact"
+              >
                 Contact Us
               </Link>
-              <Link className="block hover:underline font-medium" href="/">
-                Terms & Conditions
+              <Link
+                className="block hover:underline font-medium"
+                href="/about-us"
+              >
+                About Us
               </Link>
-              <Link className="block hover:underline font-medium" href="/">
-                Privacy Policy
+              <Link
+                className="block hover:underline font-medium"
+                href="/astrology-news"
+              >
+                Astrology News
+              </Link>
+            </div>
+            <div className="space-y-8">
+              <Link className="block hover:underline font-medium" href="/login">
+                Login
               </Link>
             </div>
           </div>
@@ -104,14 +135,20 @@ export default function Footer() {
             "
           >
             {icons.map(({ href, icon, label }) => (
-              <Link key={label} href={href}>
+              <a
+                key={label}
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={label}
+              >
                 <FontAwesomeIcon
                   icon={icon}
                   fixedWidth
                   style={{ width: '1.5rem', height: '1.5rem' }}
                 />
                 <span className="sr-only">{label}</span>
-              </Link>
+              </a>
             ))}
           </div>
         </div>

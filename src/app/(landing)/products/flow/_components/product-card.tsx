@@ -10,16 +10,19 @@ interface ProductCardProps {
   tag?: string;
   description?: string;
   duration: string;
+  automatedPrice?: number;
+  livePrice?: number;
   buttonText: string;
   href: string;
   classNames?: string;
   isInCart?: boolean;
   onCartToggle?: (productId: string) => void;
   productId?: string;
+  categories?: string[];
 }
 
 export default function ProductCard({
-  image,
+  image = '/images/no-image.png',
   title,
   tag,
   description,
@@ -28,28 +31,41 @@ export default function ProductCard({
   href,
   classNames,
   isInCart = false,
+  automatedPrice,
+  livePrice,
+  categories,
   onCartToggle,
   productId,
 }: ProductCardProps): JSX.Element {
+  console.log('image url are : ', image);
   return (
     <div
       className={`w-full h-full max-w-[500px] bg-grey-light-50 p-2 pb-6 overflow-hidden flex flex-col ${classNames}`}
     >
       {/* Image */}
       <div className="relative h-48 w-full">
-        <Image
-          src={image}
-          alt={title}
-          fill
-          className="object-cover shadow-sm"
-        />
-        
+        {image ? (
+          <Image
+            src={image}
+            alt={title}
+            fill
+            sizes="(max-width: 768px) 100vw, 500px"
+            className="object-cover shadow-sm"
+            priority
+            loading="eager"
+          />
+        ) : (
+          <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+            <span className="text-gray-500">No image</span>
+          </div>
+        )}
+
         {/* Cart Toggle Icon */}
         {onCartToggle && productId && (
           <button
             onClick={() => onCartToggle(productId)}
             className="absolute top-2 right-2 w-8 h-8 bg-grey-light-50 cursor-pointer hover:bg-black rounded-full flex items-center justify-center transition-all duration-200 z-10 group"
-            aria-label={isInCart ? "Remove from cart" : "Add to cart"}
+            aria-label={isInCart ? 'Remove from cart' : 'Add to cart'}
           >
             {isInCart ? (
               <Trash2 className="w-4 h-4 text-red-500 group-hover:text-white transition-colors duration-200" />
@@ -63,8 +79,8 @@ export default function ProductCard({
       {/* Content */}
       <div className="p-2 flex flex-col flex-grow">
         {/* Title & Tag */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="md:text-size-large font-semibold text-gray-800">
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-xl md:text-2xl font-semibold text-gray-800">
             {title}
           </h2>
           {tag && (
@@ -74,11 +90,20 @@ export default function ProductCard({
               {tag}
             </span>
           )}
+          {categories && categories.length > 0 && (
+            <span
+              className={`text-xs px-3 py-1.5 bg-gradient-to-r from-golden-glow via-pink-shade to-golden-glow-dark`}
+            >
+              {categories
+                .map((category) => category.replace('_', ' '))
+                .join(' / ')}
+            </span>
+          )}
         </div>
 
         {/* Description */}
         {description && (
-          <p className="text-justify text-sm mb-4 flex-grow">{description}</p>
+          <p className="text-justify text-base mb-4 flex-grow">{description}</p>
         )}
 
         {/* Duration */}
@@ -88,6 +113,22 @@ export default function ProductCard({
           </span>
           {duration}
         </div>
+
+        {/* Pricing Section - Only render if there are prices */}
+        {(Number(automatedPrice) > 0 || Number(livePrice) > 0) && (
+          <div className="text-semibold">
+            {Number(automatedPrice) > 0 && (
+              <div className="flex mb-4 items-center justify-between">
+                Automated Price: ${automatedPrice}
+              </div>
+            )}
+            {Number(livePrice) > 0 && (
+              <div className="flex items-center justify-between">
+                Live Price: ${livePrice}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Button */}
         <Link

@@ -46,10 +46,10 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-white">Admin Dashboard</h1>
-        <p className="text-white/70 mt-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Admin Dashboard</h1>
+        <p className="text-white/70 mt-2 text-sm sm:text-base">
           Welcome to the Astromegistus Admin Panel
         </p>
       </div>
@@ -68,7 +68,7 @@ export default function AdminDashboard() {
           </div>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
@@ -76,19 +76,25 @@ export default function AdminDashboard() {
                 key={stat.title}
                 className="bg-emerald-green/10 border-white/10"
               >
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-white/70">
-                    {stat.title}
-                  </CardTitle>
-                  <Icon className={`h-4 w-4 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-white">
-                    {stat.value}
+                <CardContent className="p-3 sm:p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-white/70 text-xs sm:text-sm font-medium">
+                        {stat.title}
+                      </p>
+                      <p className="text-xl sm:text-2xl font-bold text-white">
+                        {stat.value}
+                      </p>
+                    </div>
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                      <Icon className={`h-4 w-4 sm:h-5 sm:w-5 ${stat.color}`} />
+                    </div>
                   </div>
-                  <p className="text-xs text-green-400 mt-1">
-                    {stat.change} from last month
-                  </p>
+                  <div className="mt-2 flex items-center text-xs">
+                    <span className="text-green-400">
+                      {stat.change} from last month
+                    </span>
+                  </div>
                 </CardContent>
               </Card>
             );
@@ -96,8 +102,8 @@ export default function AdminDashboard() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="bg-emerald-green/10 border-white/10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 p-2 sm:p-4">
+        <Card className="bg-emerald-green/10 border-white/10 p-4 sm:p-6">
           <CardHeader>
             <CardTitle className="text-white">Recent Activity</CardTitle>
           </CardHeader>
@@ -128,24 +134,24 @@ export default function AdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-emerald-green/10 border-white/10">
+        <Card className="bg-emerald-green/10 border-white/10 p-4 sm:p-6">
           <CardHeader>
             <CardTitle className="text-white">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="space-y-3">
-              <button className="w-full text-left p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                <p className="text-white font-medium">Add New Product</p>
+            <div className="space-y-2 sm:space-y-3">
+              <button className="w-full text-left p-2 sm:p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <p className="text-white font-medium text-sm sm:text-base">Add New Product</p>
                 <p className="text-xs text-white/50">
                   Create a new astrology reading
                 </p>
               </button>
-              <button className="w-full text-left p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                <p className="text-white font-medium">View User Reports</p>
+              <button className="w-full text-left p-2 sm:p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <p className="text-white font-medium text-sm sm:text-base">View User Reports</p>
                 <p className="text-xs text-white/50">Analyze user engagement</p>
               </button>
-              <button className="w-full text-left p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
-                <p className="text-white font-medium">System Settings</p>
+              <button className="w-full text-left p-2 sm:p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors">
+                <p className="text-white font-medium text-sm sm:text-base">System Settings</p>
                 <p className="text-xs text-white/50">
                   Configure platform settings
                 </p>

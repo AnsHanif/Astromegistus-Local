@@ -9,6 +9,7 @@ interface ModalProps {
   title: string;
   children: React.ReactNode;
   icon?: React.ReactNode;
+  maxWidth?: string;
 }
 
 export default function Modal({
@@ -17,6 +18,7 @@ export default function Modal({
   title,
   children,
   icon,
+  maxWidth = 'max-w-2xl',
 }: ModalProps) {
   // Handle ESC key press
   useEffect(() => {
@@ -46,7 +48,7 @@ export default function Modal({
       onClick={onClose} // Close on outside click
     >
       <div
-        className="bg-emerald-green/30 border-white/30 shadow-2xl w-full max-w-md max-h-[90vh] rounded-lg flex flex-col"
+        className={`bg-emerald-green border-white/30 shadow-2xl w-full ${maxWidth} max-h-[90vh] rounded-lg flex flex-col`}
         onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside modal
       >
         <div className="flex flex-row items-center justify-between border-b border-white/10 p-6 flex-shrink-0">
@@ -57,7 +59,7 @@ export default function Modal({
           <Button
             variant="ghost"
             size="sm"
-            className="text-white hover:bg-white/10 p-1 h-8 w-8"
+            className="text-white hover:bg-gradient-to-r hover:from-golden-glow hover:via-pink-shade hover:to-golden-glow-dark hover:text-black transition-all duration-200 p-1 h-8 w-8 rounded-full"
             onClick={onClose}
           >
             <X className="h-4 w-4" />

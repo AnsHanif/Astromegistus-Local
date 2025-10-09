@@ -181,6 +181,14 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
           onSubmit={methods.handleSubmit(onSubmit)}
           className="!flex flex-col gap-6 md:gap-16 md:flex-row w-full h-full max-w-[1000px] justify-between"
         >
+          <div style={{ display: 'none' }}>
+            <input type="email" name="prevent_autofill" autoComplete="email" />
+            <input
+              type="password"
+              name="password_fake"
+              autoComplete="new-password"
+            />
+          </div>
           <div className="w-full space-y-6 md:space-y-8 mb-4">
             <FormInput
               label="Full Name"
@@ -195,6 +203,10 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
                 maxLength: {
                   value: 100,
                   message: 'Full name must be at most 100 characters long.',
+                },
+                pattern: {
+                  value: /^[a-zA-Z\s]+$/,
+                  message: 'Full name can only contain letters and spaces.',
                 },
               }}
             />
@@ -337,19 +349,21 @@ const SignupPage = ({ onSuccess }: SignupPageProps) => {
           </div>
         </form>
 
-        <Button
-          className="w-full max-w-[129px] h-[60px] text-black p-2 sm:w-[129px]"
-          onClick={methods.handleSubmit(onSubmit)}
-          disabled={isPending}
-        >
-          {isPending ? <SpinnerLoader /> : 'Create Account'}
-        </Button>
+        <div className="flex flex-col items-start gap-4">
+          <Button
+            className="w-full max-w-[129px] h-[60px] text-black p-2 sm:w-[129px]"
+            onClick={methods.handleSubmit(onSubmit)}
+            disabled={isPending}
+          >
+            {isPending ? <SpinnerLoader /> : 'Create Account'}
+          </Button>
 
-        <div className="text-center md:w-[470px]">
-          Already have an account?{' '}
-          <Link href="/login" className="text-golden-yellow hover:underline">
-            Login
-          </Link>
+          <div className="text-left md:w-[470px]">
+            Already have an account?{' '}
+            <Link href="/login" className="text-golden-yellow hover:underline">
+              Login
+            </Link>
+          </div>
         </div>
       </FormProvider>
     </AuthForm>

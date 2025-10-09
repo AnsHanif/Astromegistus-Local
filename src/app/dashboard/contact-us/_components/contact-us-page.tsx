@@ -8,7 +8,6 @@ function ContactUsPage() {
 
   return (
     <div className="mt-14 relative">
-
       {/* Contact Cards Container */}
       <div className="flex max-w-4xl mx-auto overflow-hidden items-center">
         {/* Left Column - Icons */}
@@ -17,7 +16,7 @@ function ContactUsPage() {
           <div className="flex-1 flex items-center justify-center">
             <Phone className="h-8 w-8 md:h-10 md:w-10 text-black" />
           </div>
-          
+
           {/* Email Icon Section */}
           <div className="flex-1 flex items-center justify-center">
             <Mail className="h-8 w-8 md:h-10 md:w-10 text-black" />
@@ -25,17 +24,23 @@ function ContactUsPage() {
         </div>
 
         {/* Right Column - Content */}
-        <div className="!bg-[#093B1D] flex-1 flex flex-col h-[497px]">
+        <div className="!bg-[var(--bg)] flex-1 flex flex-col h-[497px]">
           {/* Phone Content Section */}
           <div className="flex-1 px-8 flex flex-col justify-center">
-            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">Phone:</h2>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">
+              Phone:
+            </h2>
             <p className="text-gray-200 text-lg">Will be provided at launch</p>
           </div>
-          
+
           {/* Email Content Section */}
           <div className="flex-1 px-8 flex flex-col justify-center">
-            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">Email:</h2>
-            <p className="text-gray-200 text-lg underline">info@astromegistus.com</p>
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 text-white">
+              Email:
+            </h2>
+            <p className="text-gray-200 text-lg underline">
+              info@astromegistus.com
+            </p>
           </div>
         </div>
       </div>

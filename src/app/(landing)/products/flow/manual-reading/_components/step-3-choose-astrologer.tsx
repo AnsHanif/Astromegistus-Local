@@ -1,14 +1,15 @@
 import React, { FC, useEffect, useState } from 'react';
 import { ManualReading } from './manual-reading.interfaces';
 import CustomCheckbox from '@/components/common/custom-checkbox/custom-checkbox';
-import Image from 'next/image';
+// import Image from 'next/image';
 import AstrologerProfileCard from './astrologer-profile-card';
 import { Button } from '@/components/ui/button';
-import { useAstrologers } from '@/hooks/query/user-queries';
 import SpinnerLoader from '@/components/common/spinner-loader/spinner-loader';
 import { User } from '@/services/api/user-api';
 import { useBooking } from '../../_components/booking-context';
-import { useCreateRandomBooking } from '@/hooks/mutation/booking-mutation/booking-mutation';
+import { useProductAstrologers } from '@/hooks/mutation/product-sections-mutations';
+import { useAstrologers } from '@/hooks/query/user-queries';
+import { useSearchParams } from 'next/navigation';
 
 interface Step3ChooseAstrologerProps {
   onPrev?: () => void;
@@ -19,6 +20,9 @@ const Step3ChooseAstrologer: FC<Step3ChooseAstrologerProps> = ({
   onNext,
   onPrev,
 }) => {
+  const searchParams = useSearchParams();
+  const productId = searchParams.get('productId') || '';
+  const itemId = searchParams.get('itemId') || '';
   // Get booking context to store selected astrologer and initialize state
   const { data: bookingData, updateData } = useBooking();
 
@@ -31,38 +35,34 @@ const Step3ChooseAstrologer: FC<Step3ChooseAstrologerProps> = ({
     null // Will be set in useEffect when astrologers load
   );
   const [validationError, setValidationError] = useState('');
+  const [isLoadingRandom, setIsLoadingRandom] = useState(false);
 
-  // Random booking mutation for auto-match
-  const {
-    mutateAsync: createRandomBooking,
-    isPending: isCreatingRandomBooking,
-  } = useCreateRandomBooking();
+  // Mutation for getting astrologers - only calls when manually triggered
+  const { mutateAsync: getAstrologers, isPending } = useProductAstrologers();
 
-  // Fetch astrologers from API with pagination
   const {
     data: astrologersData,
     isLoading,
     error,
-    isError,
-    refetch,
   } = useAstrologers('ASTROMEGISTUS', {
-    limit: 6, // Show 6 astrologers per page
+    limit: 6,
     page: currentPage,
+    productId: productId,
   });
 
-  const astrologers = astrologersData?.data?.data?.users || [];
+  const astrologers: User[] = astrologersData?.data?.data?.users || [];
   const pagination = astrologersData?.data?.data?.pagination;
 
   // Restore selected astrologer from context when astrologers load
   useEffect(() => {
     if (astrologers.length > 0 && bookingData.selectedProvider) {
       const savedAstrologer = astrologers.find(
-        (astro) => astro.id === bookingData.selectedProvider
+        (astro: User) => astro.id === bookingData.selectedProvider
       );
       if (savedAstrologer) {
         setSelectedAstrologer(savedAstrologer);
         const index = astrologers.findIndex(
-          (astro) => astro.id === bookingData.selectedProvider
+          (astro: User) => astro.id === bookingData.selectedProvider
         );
         setSelectedIndex(index >= 0 ? index : null);
       }
@@ -79,62 +79,46 @@ const Step3ChooseAstrologer: FC<Step3ChooseAstrologerProps> = ({
 
     try {
       if (choice === 'auto') {
-        // Call random booking API for auto-match
-        const randomBookingPayload = {
-          productId: bookingData.productId,
-          type: 'MANUAL' as const,
-          persons: [
-            {
-              fullName: bookingData.fullName,
-              dateOfBirth: `${bookingData.year}-${bookingData.month.padStart(2, '0')}-${bookingData.day.padStart(2, '0')}`,
-              timeOfBirth: `${bookingData.hour.padStart(2, '0')}:${bookingData.minute.padStart(2, '0')}`,
-              placeOfBirth: bookingData.birthCountry,
-              questions: [
-                {
-                  questionText:
-                    bookingData.question1 || 'What does my future hold?',
-                  answer: '',
-                },
-                {
-                  questionText:
-                    bookingData.question2 || 'What should I focus on?',
-                  answer: '',
-                },
-                {
-                  questionText: bookingData.question3 || 'Any guidance for me?',
-                  answer: '',
-                },
-              ],
-            },
-          ],
-        };
-
-        const response = await createRandomBooking(randomBookingPayload);
-
-        // Store the auto-assigned astrologer details
-        updateData({
-          selectedProvider: response.data.providerId || null,
-          selectedProviderName: 'Auto-Assigned Astrologer',
-          selectionType: choice,
-          bookingId: response.data.id,
-          sessionTitle: 'Manual Reading',
-          sessionDescription:
-            'Personalized reading with auto-assigned astrologer',
-          status: 'confirmed',
+        setIsLoadingRandom(true);
+        // Call the POST API to get astrologers for this product
+        const response = await getAstrologers({
+          // productId: bookingData.productId,
+          productId: productId,
         });
+
+        if (response.data?.astrologer) {
+          // Store the randomly selected astrologer details
+          updateData({
+            selectedProvider: response.data?.astrologer?.id,
+            selectedProviderName: response.data?.astrologer?.name,
+            selectionType: choice,
+            productId: productId,
+            itemId: itemId,
+          });
+        }
+
+        setIsLoadingRandom(false);
       } else {
-        // Manual selection - store selected astrologer in booking context
         updateData({
+          selectedProvider: selectedAstrologer!.id,
+          selectedProviderName: selectedAstrologer!.name,
+          selectionType: choice,
+          productId: productId,
+          itemId: itemId,
+        });
+
+        console.log('Updated booking data with manually selected astrologer:', {
           selectedProvider: selectedAstrologer!.id,
           selectedProviderName: selectedAstrologer!.name,
           selectionType: choice,
         });
       }
 
-      onNext(choice);
+      onNext('manual');
     } catch (error) {
-      console.error('Error creating booking:', error);
-      setValidationError('Failed to create booking. Please try again.');
+      console.error('Error selecting astrologer:', error);
+      setValidationError('Failed to select astrologer. Please try again.');
+      setIsLoadingRandom(false);
     }
   };
 
@@ -181,7 +165,7 @@ const Step3ChooseAstrologer: FC<Step3ChooseAstrologerProps> = ({
         )}
 
         {/* Error State */}
-        {error && (
+        {/* {error && (
           <div className="text-center py-12">
             <p className="text-red-500 mb-4">
               Failed to load astrologers. Please try again.
@@ -190,10 +174,10 @@ const Step3ChooseAstrologer: FC<Step3ChooseAstrologerProps> = ({
               Retry
             </Button>
           </div>
-        )}
+        )} */}
 
         {/* Astrologers Grid */}
-        {!isLoading && !error && (
+        {!isLoading && !error && astrologersData && (
           <div className="grid grid-cols-1 md:gap-x-12 md:gap-y-4 mb-12 place-items-center md:grid-cols-2">
             {astrologers.length > 0 ? (
               astrologers.map((astro: User, index: number) => (
@@ -280,9 +264,9 @@ const Step3ChooseAstrologer: FC<Step3ChooseAstrologerProps> = ({
           }
           variant={'outline'}
           className="bg-emerald-green h-12 hover:bg-emerald-green/90 md:max-w-[10rem] w-full px-2 text-white"
-          disabled={isCreatingRandomBooking}
+          disabled={isLoadingRandom}
         >
-          {isCreatingRandomBooking ? <SpinnerLoader /> : 'Next'}
+          {isLoadingRandom ? <SpinnerLoader /> : 'Next'}
         </Button>
       </div>
     </section>
